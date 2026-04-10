@@ -1304,191 +1304,233 @@ resulting generated DID document. These documents were generated for the
 
 ```json
 {
-    "v": "KERI10JSON0001b7_",
-    "t": "icp",
-    "d": "Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M", // controller AID
-    "i": "Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-    "s": "0",
-    "kt": "2",  // Signing Threshold
-    "k": [
-      "1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",  // Secp256k1 Key
-      "DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",      // Ed25519 Key
-      "DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu"       // Ed25519 Key
-    ],
-    "nt": "2",
-    "n": [
-      "Eao8tZQinzilol20Ot-PPlVz6ta8C4z-NpDOeVs63U8s",
-      "EAcNrjXFeGay9qqMj96FIiDdXqdWjX17QXzdJvq58Zco",
-      "EPoly9Tq4IPx41U-AGDShLDdtbFVzt7EqJUHmCrDxBdb"
-    ],
-    "bt": "3",
-    "b": [
-      "BGKVzj4ve0VSd8z_AmvhLg4lqcC_9WYX90k03q-R_Ydo",
-      "BuyRFMideczFZoapylLIyCjSdhtqVb31wZkRKvPfNqkw",
-      "Bgoq68HCmYNUDgOz4Skvlu306o_NY-NrYuKAVhk3Zh9c"
-    ],
-    "c": [],
-    "a": []
-  }
-...
+  "v": "KERI10JSON000159_",
+  "t": "icp",
+  "d": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "i": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP", // controller AID
+  "s": "0",
+  "kt": "1", // Signing Threshold
+  "k": [
+    "DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6" // Ed25519 Key
+  ],
+  "nt": "1",
+  "n": [
+    "EIzv5mDvyc-ftAyn06LyO0HvzfG7dJqx1zvYWGGIGiYp"
+  ],
+  "bt": "1",
+  "b": [
+    "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q"
+  ],
+  "c": [],
+  "a": []
+} # SERDER KERI JSON ilk=icp said=EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP
+-VA- # AttachmentGroup count=62
+  -AAB # ControllerIdxSigs count=1
+    AAB4cyI76lyD93OfWuaobiUp5Pmc1QRpcbFf6hJmRNmBXlXh6Rhwz62DA-UWdmz4JDlvkB4HWxEDyeATPB6a2lMG # Indexer A
+  -BAB # WitnessIdxSigs count=1
+    AABsvXNPmJtSZ9PDyBQSq0SW3oR6jkxmbDOSi9HUkXeNKIAjeYj56K_mEu0uNOUz6ZFbr_NiWO7LW_9HnSWcNQEE # Indexer A
+  -EAB # FirstSeenReplayCouples count=1
+    0AAAAAAAAAAAAAAAAAAAAAAA # Salt_128
+    1AAG2026-02-06T21c44c30d394136p00c00 # DateTime
 {
-  // series of events establishing KERI agent at http://foo.example.com:3901/
-  "v": "KERI10JSON00013a_",
-  "t": "ixn",
-  "d": "Ek48ahzTIUA1ynJIiRd3H0WymilgqDbj8zZp4zzrad-w",
-  "i": "Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-  "s": "1",
-  "p": "Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-  "a": [
-    {
-      "i": "EoLNCdag8PlHpsIwzbwe7uVNcPE1mTr-e1o9nCIDPWgM",
-      "s": "0",
-      "d": "EoLNCdag8PlHpsIwzbwe7uVNcPE1mTr-e1o9nCIDPWgM"
+    "v": "KERI10JSON00013a_",
+    "t": "ixn",
+    "d": "EMllQ2kDZp9OnErTfJkzqbZN4hoH-rATBvVyASczJFIN",
+    "i": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "s": "1",
+    "p": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "a": [
+        {
+            "i": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+            "s": "0",
+            "d": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl"
+        }
+    ]
+} # SERDER KERI JSON ilk=ixn said=EMllQ2kDZp9OnErTfJkzqbZN4hoH-rATBvVyASczJFIN
+-VA- # AttachmentGroup count=62
+  -AAB # ControllerIdxSigs count=1
+    AADWZ-EFDi1uUYADYndezXmaatC7lTeprXNmz9m9rWdtuTnDggoQTAdzbvhT3pmuIRQ_o0YRGPZlkLMHQWI2U-II # Indexer A
+  -BAB # WitnessIdxSigs count=1
+    AAAd06pwr8dlJMlHj-tu0rCenBRXyOXPhSWOmdtVMt341HUGDXkWK8UgnluVZJeIDMpK7i_EmeTbFJRKp0WjjxQB # Indexer A
+  -EAB # FirstSeenReplayCouples count=1
+    0AAAAAAAAAAAAAAAAAAAAAAB # Salt_128
+    1AAG2026-02-06T21c44c33d567002p00c00 # DateTime
+{
+    "v": "KERI10JSON00013a_",
+    "t": "ixn",
+    "d": "EGZKcIKf9euYtsGJI5RxWoL6sprJS8Rt6Em97X85tJPq",
+    "i": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "s": "2",
+    "p": "EMllQ2kDZp9OnErTfJkzqbZN4hoH-rATBvVyASczJFIN",
+    "a": [
+        {
+            "i": "EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ",
+            "s": "0",
+            "d": "EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr"
+        }
+    ]
+} # SERDER KERI JSON ilk=ixn said=EGZKcIKf9euYtsGJI5RxWoL6sprJS8Rt6Em97X85tJPq
+-VA- # AttachmentGroup count=62
+  -AAB # ControllerIdxSigs count=1
+    AAA9kqQkjxtJXrlEVvRHL03axIVNqDkEh97J3F0khmHD1XDtYwYEh_6Ph4bpkGzy8hEg9mjh8OSsO26Wi1Lzj5gJ # Indexer A
+  -BAB # WitnessIdxSigs count=1
+    AAB_kpV6o7UCTy6Pr_iyjSQ61g4r9-s24L9fxPW2hQ04OYohlFBBDKpB1utLy8npdTA0wDJmvcThft_z4DHPU10I # Indexer A
+  -EAB # FirstSeenReplayCouples count=1
+    0AAAAAAAAAAAAAAAAAAAAAAC # Salt_128
+    1AAG2026-02-06T21c44c38d529897p00c00 # DateTime
+{
+    "v": "KERI10JSON000109_",
+    "t": "rpy",
+    "d": "EAVexvYonCqxXNNQ8208SLo3Afcg9W7d7eiNJ2FC8tMe",
+    "dt": "2025-04-16T16:50:26.283032-07:00",
+    "r": "/loc/scheme",
+    "a": {
+        "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
+        "scheme": "https",
+        "url": "https://wit1.testnet.gleif.org:5641/"
     }
-  ]
-}
-...
+} # SERDER KERI JSON ilk=rpy said=EAVexvYonCqxXNNQ8208SLo3Afcg9W7d7eiNJ2FC8tMe
+-VAi # AttachmentGroup count=34
+  -CAB # NonTransReceiptCouples count=1
+    BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q # Ed25519N
+    0BAg8reb-ciDO-qERm3Sw0v--6nTH5jVAAxAxMlz89Sk6jUwaJMLsTSzN0aIXXuZwCSS2WMfLCHdvTMr5zHhhjYA # Ed25519_Sig
 {
-  "v": "KERI10JSON000116_",
-  "t": "rpy",
-  "d": "EBiVyW6jPOeHX5briFYMQ4CefzqIZHgl-rrcXqj_t9ex",
-  "dt": "2022-01-20T12:57:59.823350+00:00",
-  "r": "/end/role/add",
-  "a": {
-    "cid": "Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-    "role": "agent",
-    "eid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1"
-  }
-}
-...
+    "v": "KERI10JSON000105_",
+    "t": "rpy",
+    "d": "ENAFmV935lXzYQfDKwgjU08o-AC5ZfqhGR2dtgka1kvq",
+    "dt": "2025-04-16T16:50:26.283032-07:00",
+    "r": "/loc/scheme",
+    "a": {
+        "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
+        "scheme": "tcp",
+        "url": "tcp://wit1.testnet.gleif.org:5631/"
+    }
+} # SERDER KERI JSON ilk=rpy said=ENAFmV935lXzYQfDKwgjU08o-AC5ZfqhGR2dtgka1kvq
+-VAi # AttachmentGroup count=34
+  -CAB # NonTransReceiptCouples count=1
+    BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q # Ed25519N
+    0BAkXrIwv1_AhUBkG597Us8YcdlxfDRu7rJ0QUiTL7UmAsPnIaZt_hov4rrw4astrD1LKIKUkpv2KRu31e8RJ30I # Ed25519_Sig
 {
-  "v": "KERI10JSON000116_",
-  "t": "rpy",
-  "d": "EBiVyW6jPOeHX5briFYMQ4CefzqIZHgl-rrcXqj_t9ex",
-  "dt": "2022-01-20T12:57:59.823350+00:00",
-  "r": "/end/role/add",
-  "a": {
-    "cid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1",
-    "role": "controller",
-    "eid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1"
-  }
-}
-...
+    "v": "KERI10JSON000116_",
+    "t": "rpy",
+    "d": "EIUHDBQmdOf7B0TwHqREnB-_gGYa2b9exOcLJMylrp6P",
+    "dt": "2025-04-16T16:50:26.283032-07:00",
+    "r": "/end/role/add",
+    "a": {
+        "cid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
+        "role": "controller",
+        "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q"
+    }
+} # SERDER KERI JSON ilk=rpy said=EIUHDBQmdOf7B0TwHqREnB-_gGYa2b9exOcLJMylrp6P
+-VAi # AttachmentGroup count=34
+  -CAB # NonTransReceiptCouples count=1
+    BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q # Ed25519N
+    0BBrZ8OdE5mQ59dYmPD6uqR-eV-v-6Noiw4XaHifrzXJFnMhZwF1IxEcVSfLoD3yVnQE1VhEh5aSjDv_NvDf0ckC # Ed25519_Sig
 {
-  "v": "KERI10JSON0000fa_",
-  "t": "rpy",
-  "d": "EOGL1KGpOnRaZDIB11uZDCkhHs52_MtMXHd7EqUqwtA3",
-  "dt": "2022-01-20T12:57:59.823350+00:00",
-  "r": "/loc/scheme",
-  "a": {
-    "eid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1",
-    "scheme": "http",
-    "url": "http://foo.example.com:3901/"
-  }
-}
-
-
-...
+    "v": "KERI10JSON0000ff_",
+    "t": "vcp",
+    "d": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+    "i": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+    "ii": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "s": "0",
+    "c": [
+     "NB"
+    ],
+    "bt": "0",
+    "b": [],
+    "n": "0AAuhv_GQrchdHyeZGXUMFw1"
+} # SERDER KERI JSON ilk=vcp said=EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl
+-VAS # AttachmentGroup count=18
+  -GAB # SealSourceCouples count=1
+    0AAAAAAAAAAAAAAAAAAAAAAB # Salt_128
+    EMllQ2kDZp9OnErTfJkzqbZN4hoH-rATBvVyASczJFIN # Blake3_256
 {
-  "v": "KERI10JSON000116_",
-  "t": "rpy",
-  "d": "EBiVyW6jPOeHX5briFYMQ4CefzqIZHgl-rrcXqj_t9ex",
-  "dt": "2022-01-20T12:57:59.823350+00:00",
-  "r": "/end/role/add",
-  "a": {
-    "cid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1",
-    "role": "controller",
-    "eid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1"
-  }
-}
-...
+    "v": "KERI10JSON0000ed_",
+    "t": "iss",
+    "d": "EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr",
+    "i": "EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ",
+    "s": "0",
+    "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+    "dt": "2026-02-06T21:44:36.788115+00:00"
+} # SERDER KERI JSON ilk=iss said=EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr
+-VAS # AttachmentGroup count=18
+  -GAB # SealSourceCouples count=1
+    0AAAAAAAAAAAAAAAAAAAAAAC # Salt_128
+    EGZKcIKf9euYtsGJI5RxWoL6sprJS8Rt6Em97X85tJPq # Blake3_256
 {
-  "v": "KERI10JSON0000fa_",
-  "t": "rpy",
-  "d": "EOGL1KGpOnRaZDIB11uZDCkhHs52_MtMXHd7EqUqwtA3",
-  "dt": "2022-01-20T12:57:59.823350+00:00",
-  "r": "/loc/scheme",
-  "a": {
-    "eid": "EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1",
-    "scheme": "http",
-    "url": "http://foo.example.com:3901/"
-  }
-}
+    "v": "ACDC10JSON000574_",
+    "d": "EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ",
+    "i": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+    "s": "EN6Oh5XSD5_q2Hgu-aqpdfbVepdpYpFlgz6zvJL5b_r5",
+    "a": {
+        "d": "ELt92UqnBvlk8UOWpK2uUWlXEohe6j_JEVP4zvRY3HB-",
+        "dt": "2026-02-06T21:44:36.788115+00:00",
+        "ids": [
+            "did:web:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+            "did:webs:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+            "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
+        ]
+    },
+    "r": {
+    "d": "EEVTx0jLLZDQq8a5bXrXgVP0JDP7j8iDym9Avfo8luLw",
+    "aliasDesignation": {
+      "l": "The issuer of this ACDC designates the identifiers in the ids field as the only allowed namespaced aliases of the issuer's AID."
+    },
+    "usageDisclaimer": {
+      "l": "This attestation only asserts designated aliases of the controller of the AID, that the AID controlled namespaced alias has been designated by the controller. It does not assert that the controller of this AID has control over the infrastructure or anything else related to the namespace other than the included AID."
+    },
+    "issuanceDisclaimer": {
+      "l": "All information in a valid and non-revoked alias designation assertion is accurate as of the date specified."
+    },
+    "termsOfUse": {
+      "l": "Designated aliases of the AID must only be used in a manner consistent with the expressed intent of the AID controller."
+    }
+    }
+} # SERDER ACDC JSON said=EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ
+-IAB # SealSourceTriples count=1
+  EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ # Blake3_256
+  0AAAAAAAAAAAAAAAAAAAAAAA # Salt_128
+  EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr # Blake3_256
 
 ```
 
 Resulting DID document:
 
 ```json
-  "didDocument": {
-    "id": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-    "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-    "alsoKnownAs": [
-      "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-      "did:web:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-      "did:keri:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M"
-    ],
-    "verificationMethod": [
-      {
-        "id": "#Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-        "type": "ConditionalProof2022",
-        "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-        "threshold": 2,
-        "conditionThreshold": [
-          "#1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
-          "#DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
-          "#DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu"
-        ]
-      },
-      {
-        "id": "#1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
-        "type": "JsonWebKey",
-        "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-        "publicKeyJwk": {
-          "kid": "1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
-          "kty": "EC",
-          "crv": "secp256k1",
-          "x": "NtngWpJUr-rlNNbs0u-Aa8e16OwSJu6UiFf0Rdo1oJ4",
-          "y": "qN1jKupJlFsPFc1UkWinqljv4YE0mq_Ickwnjgasvmo"
-        }
-      },
-      {
-        "id": "#DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
-        "type": "JsonWebKey",
-        "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-        "publicKeyJwk": {
-          "kid": "DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
-          "kty": "OKP",
-          "crv": "Ed25519",
-          "x": "A-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE"
-        }
-      },
-      {
-        "id": "#DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu",
-        "type": "JsonWebKey",
-        "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-        "publicKeyJwk": {
-          "kid": "DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu",
-          "kty": "OKP",
-          "crv": "Ed25519",
-          "x": "LWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNws"
-        }
+{
+  "id": "did:web:hook.testnet.gleif.org%3A7702:dws:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "verificationMethod": [
+    {
+      "id": "#DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
+      "type": "JsonWebKey",
+      "controller": "did:web:hook.testnet.gleif.org%3A7702:dws:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+      "publicKeyJwk": {
+        "kid": "DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "mDsBBRIoASj4-SCPi1UXsvT4Wom3RAXEWHnzvwBxm_o"
       }
-    ],
-    "authentication": [
-      "#Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M"
-    ],
-    "assertionMethod": [
-      "#Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M"
-    ],
-    "service": [
-      {
-        "id": "#EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1",
-        "type": "KeriAgent",
-        "serviceEndpoint": "http://foo.example.com:3901/"
+    }
+  ],
+  "service": [
+    {
+      "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/witness",
+      "type": "witness",
+      "serviceEndpoint": {
+        "https": "https://wit1.testnet.gleif.org:5641/",
+        "tcp": "tcp://wit1.testnet.gleif.org:5631/"
       }
-    ]
-  }...
+    }
+  ],
+  "alsoKnownAs": [
+    "did:web:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "did:webs:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP?oobi=https%3A//wit1.testnet.gleif.org%3A5641/oobi/EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP/witness",
+    "did:web:hook.testnet.gleif.org%3A7702:dws:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
+  ]
+}
 ```
 
 :::
@@ -1825,26 +1867,28 @@ showing five designated aliases:
 
 ```json
 {
-    "v": "ACDC10JSON0005f2_",
-    "d": "EIGWggWL2IHiUzj1P2YuPA0-Uh55LTIu14KTvVQGrfvT",
-    "i": "ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-    "ri": "EAtQJEQMkkvlWxyfLbcLyv4kNeAI5Qsqe65vKIWnHKpx",
-    "s": "EN6Oh5XSD5_q2Hgu-aqpdfbVepdpYpFlgz6zvJL5b_r5",
-    "a": {
-        "d": "EJJjtYa6D4LWe_fqtm1p78wz-8jNAzNX6aPDkrQcz27Q",
-        "dt": "2023-11-13T17:41:37.710691+00:00",
-        "ids": [
-            "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
-        ]
-    },
-    "r": {
-        // rules section content...
-    }
-}
+  "v": "ACDC10JSON000574_",
+  "d": "EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ",
+  "i": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+  "s": "EN6Oh5XSD5_q2Hgu-aqpdfbVepdpYpFlgz6zvJL5b_r5",
+  "a": {
+    "d": "ELt92UqnBvlk8UOWpK2uUWlXEohe6j_JEVP4zvRY3HB-",
+    "dt": "2026-02-06T21:44:36.788115+00:00",
+    "ids": [
+      "did:web:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+      "did:webs:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+      "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
+    ]
+  },
+  "r": {
+    ...rules section
+  }
+} # SERDER ACDC JSON said=EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ
+-IAB # SealSourceTriples count=1
+  EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ # Blake3_256
+  0AAAAAAAAAAAAAAAAAAAAAAA # Salt_128
+  EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr # Blake3_256
 ```
 
 The resulting DID document based on the [[ref: designated aliases]]
