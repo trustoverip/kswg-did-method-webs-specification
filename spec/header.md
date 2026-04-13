@@ -1,7 +1,7 @@
 ToIP `did:webs` Method Specification
 ==================
 
-**Specification Status**: v0.10.2
+**Specification Status**: v0.10.3
 
 In order to further validate and improve the specification and to
 demonstrate interoperability between multiple implementations of did:webs,
