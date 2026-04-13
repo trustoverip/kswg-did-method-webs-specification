@@ -1296,11 +1296,10 @@ two events, an [[ref: inception event]] and an [[ref: interaction event]].
 * The Inception event designates multiple rotation keys in the `n` field.
 * The Interaction event cryptographically anchors data associated with the
   SAID `EoLNCdag8PlHpsIwzbwe7uVNcPE1mTr-e1o9nCIDPWgM`.
-* The reply `rpy` events specify an Agent endpoint, etc.
+* The reply `rpy` events specify a Witness endpoint, etc.
 
 Below, we show the KERI Event Stream that will be associated with the
-resulting generated DID document. These documents were generated for the
-`example.com` domain with no associated port or additional path defined:
+resulting generated DID document.
 
 ```json
 {
@@ -1323,15 +1322,8 @@ resulting generated DID document. These documents were generated for the
   ],
   "c": [],
   "a": []
-} # SERDER KERI JSON ilk=icp said=EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP
--VA- # AttachmentGroup count=62
-  -AAB # ControllerIdxSigs count=1
-    AAB4cyI76lyD93OfWuaobiUp5Pmc1QRpcbFf6hJmRNmBXlXh6Rhwz62DA-UWdmz4JDlvkB4HWxEDyeATPB6a2lMG # Indexer A
-  -BAB # WitnessIdxSigs count=1
-    AABsvXNPmJtSZ9PDyBQSq0SW3oR6jkxmbDOSi9HUkXeNKIAjeYj56K_mEu0uNOUz6ZFbr_NiWO7LW_9HnSWcNQEE # Indexer A
-  -EAB # FirstSeenReplayCouples count=1
-    0AAAAAAAAAAAAAAAAAAAAAAA # Salt_128
-    1AAG2026-02-06T21c44c30d394136p00c00 # DateTime
+}
+// series of events establishing a witness service
 {
     "v": "KERI10JSON00013a_",
     "t": "ixn",
@@ -1346,15 +1338,7 @@ resulting generated DID document. These documents were generated for the
             "d": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl"
         }
     ]
-} # SERDER KERI JSON ilk=ixn said=EMllQ2kDZp9OnErTfJkzqbZN4hoH-rATBvVyASczJFIN
--VA- # AttachmentGroup count=62
-  -AAB # ControllerIdxSigs count=1
-    AADWZ-EFDi1uUYADYndezXmaatC7lTeprXNmz9m9rWdtuTnDggoQTAdzbvhT3pmuIRQ_o0YRGPZlkLMHQWI2U-II # Indexer A
-  -BAB # WitnessIdxSigs count=1
-    AAAd06pwr8dlJMlHj-tu0rCenBRXyOXPhSWOmdtVMt341HUGDXkWK8UgnluVZJeIDMpK7i_EmeTbFJRKp0WjjxQB # Indexer A
-  -EAB # FirstSeenReplayCouples count=1
-    0AAAAAAAAAAAAAAAAAAAAAAB # Salt_128
-    1AAG2026-02-06T21c44c33d567002p00c00 # DateTime
+}
 {
     "v": "KERI10JSON00013a_",
     "t": "ixn",
@@ -1369,15 +1353,7 @@ resulting generated DID document. These documents were generated for the
             "d": "EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr"
         }
     ]
-} # SERDER KERI JSON ilk=ixn said=EGZKcIKf9euYtsGJI5RxWoL6sprJS8Rt6Em97X85tJPq
--VA- # AttachmentGroup count=62
-  -AAB # ControllerIdxSigs count=1
-    AAA9kqQkjxtJXrlEVvRHL03axIVNqDkEh97J3F0khmHD1XDtYwYEh_6Ph4bpkGzy8hEg9mjh8OSsO26Wi1Lzj5gJ # Indexer A
-  -BAB # WitnessIdxSigs count=1
-    AAB_kpV6o7UCTy6Pr_iyjSQ61g4r9-s24L9fxPW2hQ04OYohlFBBDKpB1utLy8npdTA0wDJmvcThft_z4DHPU10I # Indexer A
-  -EAB # FirstSeenReplayCouples count=1
-    0AAAAAAAAAAAAAAAAAAAAAAC # Salt_128
-    1AAG2026-02-06T21c44c38d529897p00c00 # DateTime
+}
 {
     "v": "KERI10JSON000109_",
     "t": "rpy",
@@ -1387,13 +1363,9 @@ resulting generated DID document. These documents were generated for the
     "a": {
         "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
         "scheme": "https",
-        "url": "https://wit1.testnet.gleif.org:5641/"
+        "url": "https://wit1.did-webs-service:5641/"
     }
-} # SERDER KERI JSON ilk=rpy said=EAVexvYonCqxXNNQ8208SLo3Afcg9W7d7eiNJ2FC8tMe
--VAi # AttachmentGroup count=34
-  -CAB # NonTransReceiptCouples count=1
-    BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q # Ed25519N
-    0BAg8reb-ciDO-qERm3Sw0v--6nTH5jVAAxAxMlz89Sk6jUwaJMLsTSzN0aIXXuZwCSS2WMfLCHdvTMr5zHhhjYA # Ed25519_Sig
+}
 {
     "v": "KERI10JSON000105_",
     "t": "rpy",
@@ -1403,13 +1375,9 @@ resulting generated DID document. These documents were generated for the
     "a": {
         "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
         "scheme": "tcp",
-        "url": "tcp://wit1.testnet.gleif.org:5631/"
+        "url": "tcp://wit1.did-webs-service:5631/"
     }
-} # SERDER KERI JSON ilk=rpy said=ENAFmV935lXzYQfDKwgjU08o-AC5ZfqhGR2dtgka1kvq
--VAi # AttachmentGroup count=34
-  -CAB # NonTransReceiptCouples count=1
-    BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q # Ed25519N
-    0BAkXrIwv1_AhUBkG597Us8YcdlxfDRu7rJ0QUiTL7UmAsPnIaZt_hov4rrw4astrD1LKIKUkpv2KRu31e8RJ30I # Ed25519_Sig
+}
 {
     "v": "KERI10JSON000116_",
     "t": "rpy",
@@ -1421,11 +1389,8 @@ resulting generated DID document. These documents were generated for the
         "role": "controller",
         "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q"
     }
-} # SERDER KERI JSON ilk=rpy said=EIUHDBQmdOf7B0TwHqREnB-_gGYa2b9exOcLJMylrp6P
--VAi # AttachmentGroup count=34
-  -CAB # NonTransReceiptCouples count=1
-    BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q # Ed25519N
-    0BBrZ8OdE5mQ59dYmPD6uqR-eV-v-6Noiw4XaHifrzXJFnMhZwF1IxEcVSfLoD3yVnQE1VhEh5aSjDv_NvDf0ckC # Ed25519_Sig
+}
+// issuance of designated alias ACDC authorizing host information for did:webs and did:web
 {
     "v": "KERI10JSON0000ff_",
     "t": "vcp",
@@ -1439,11 +1404,7 @@ resulting generated DID document. These documents were generated for the
     "bt": "0",
     "b": [],
     "n": "0AAuhv_GQrchdHyeZGXUMFw1"
-} # SERDER KERI JSON ilk=vcp said=EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl
--VAS # AttachmentGroup count=18
-  -GAB # SealSourceCouples count=1
-    0AAAAAAAAAAAAAAAAAAAAAAB # Salt_128
-    EMllQ2kDZp9OnErTfJkzqbZN4hoH-rATBvVyASczJFIN # Blake3_256
+}
 {
     "v": "KERI10JSON0000ed_",
     "t": "iss",
@@ -1452,11 +1413,7 @@ resulting generated DID document. These documents were generated for the
     "s": "0",
     "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
     "dt": "2026-02-06T21:44:36.788115+00:00"
-} # SERDER KERI JSON ilk=iss said=EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr
--VAS # AttachmentGroup count=18
-  -GAB # SealSourceCouples count=1
-    0AAAAAAAAAAAAAAAAAAAAAAC # Salt_128
-    EGZKcIKf9euYtsGJI5RxWoL6sprJS8Rt6Em97X85tJPq # Blake3_256
+}
 {
     "v": "ACDC10JSON000574_",
     "d": "EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ",
@@ -1467,9 +1424,8 @@ resulting generated DID document. These documents were generated for the
         "d": "ELt92UqnBvlk8UOWpK2uUWlXEohe6j_JEVP4zvRY3HB-",
         "dt": "2026-02-06T21:44:36.788115+00:00",
         "ids": [
-            "did:web:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-            "did:webs:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-            "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
+            "did:web:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+            "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
         ]
     },
     "r": {
@@ -1487,11 +1443,7 @@ resulting generated DID document. These documents were generated for the
       "l": "Designated aliases of the AID must only be used in a manner consistent with the expressed intent of the AID controller."
     }
     }
-} # SERDER ACDC JSON said=EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ
--IAB # SealSourceTriples count=1
-  EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ # Blake3_256
-  0AAAAAAAAAAAAAAAAAAAAAAA # Salt_128
-  EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr # Blake3_256
+}
 
 ```
 
@@ -1499,12 +1451,12 @@ Resulting DID document:
 
 ```json
 {
-  "id": "did:web:hook.testnet.gleif.org%3A7702:dws:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "id": "did:webs:did-webs-service%3A7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
   "verificationMethod": [
     {
       "id": "#DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
       "type": "JsonWebKey",
-      "controller": "did:web:hook.testnet.gleif.org%3A7702:dws:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+      "controller": "did:webs:did-webs-service%3A7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
       "publicKeyJwk": {
         "kid": "DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
         "kty": "OKP",
@@ -1518,17 +1470,15 @@ Resulting DID document:
       "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/witness",
       "type": "witness",
       "serviceEndpoint": {
-        "https": "https://wit1.testnet.gleif.org:5641/",
-        "tcp": "tcp://wit1.testnet.gleif.org:5631/"
+        "https": "https://wit1.did-webs-service:5641/",
+        "tcp": "tcp://wit1.did-webs-service:5631/"
       }
     }
   ],
   "alsoKnownAs": [
-    "did:web:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-    "did:webs:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-    "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-    "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP?oobi=https%3A//wit1.testnet.gleif.org%3A5641/oobi/EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP/witness",
-    "did:web:hook.testnet.gleif.org%3A7702:dws:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
+    "did:web:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+    "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
   ]
 }
 ```
@@ -1661,7 +1611,7 @@ Location Scheme examples (witness AID declares https and tcp URLs):
   "a": {
     "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
     "scheme": "https",
-    "url": "https://wit1.testnet.gleif.org:5641/"
+    "url": "https://wit1.example.com:5641/"
   }
 }
 ```
@@ -1674,7 +1624,7 @@ Location Scheme examples (witness AID declares https and tcp URLs):
   "a": {
     "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
     "scheme": "tcp",
-    "url": "tcp://wit1.testnet.gleif.org:5631/"
+    "url": "tcp://wit1.example.com:5631/"
   }
 }
 ```
@@ -1686,8 +1636,8 @@ Resulting witness service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/witness",
   "type": "witness",
   "serviceEndpoint": {
-    "https": "https://wit1.testnet.gleif.org:5641/",
-    "tcp": "tcp://wit1.testnet.gleif.org:5631/"
+    "https": "https://wit1.example.com:5641/",
+    "tcp": "tcp://wit1.example.com:5631/"
   }
 }
 ```
@@ -1731,7 +1681,7 @@ Location Scheme example (mailbox AID declares http URL):
   "a": {
     "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
     "scheme": "http",
-    "url": "http://mailbox.testnet.gleif.org:5635/"
+    "url": "http://mailbox.example.com:5635/"
   }
 }
 ```
@@ -1743,7 +1693,7 @@ Resulting mailbox service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/mailbox",
   "type": "mailbox",
   "serviceEndpoint": {
-    "https": "https://mailbox.testnet.gleif.org:5635/",
+    "https": "https://mailbox.example.com:5635/",
   }
 }
 ```
@@ -1778,7 +1728,7 @@ to the following:
   "service": [{
     "id": "EDEvmKvGFjuip-J5dDw7sbVHxXA22s-pBO764CivsFt4",
     "type": "DelegatorOOBI",
-    "serviceEndpoint": "http://keria:3902/oobi/ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+    "serviceEndpoint": "http://example.com:3902/oobi/ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
   }]
 }
 ```
@@ -1831,7 +1781,7 @@ Location Scheme example (agent AID declares http URL):
   "a": {
     "eid": "BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q",
     "scheme": "http",
-    "url": "http://agent.testnet.gleif.org:5636/"
+    "url": "http://agent.example.com:5636/"
   }
 }
 ```
@@ -1843,7 +1793,7 @@ Resulting agent service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/agent",
   "type": "agent",
   "serviceEndpoint": {
-    "https": "https://agent.testnet.gleif.org:5636/",
+    "https": "https://agent.example.com:5636/",
   }
 }
 ```
@@ -1876,32 +1826,29 @@ showing five designated aliases:
     "d": "ELt92UqnBvlk8UOWpK2uUWlXEohe6j_JEVP4zvRY3HB-",
     "dt": "2026-02-06T21:44:36.788115+00:00",
     "ids": [
-      "did:web:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-      "did:webs:hook.testnet.gleif.org%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
-      "did:keri:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP"
+      "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
     ]
   },
   "r": {
     ...rules section
   }
-} # SERDER ACDC JSON said=EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ
--IAB # SealSourceTriples count=1
-  EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ # Blake3_256
-  0AAAAAAAAAAAAAAAAAAAAAAA # Salt_128
-  EBCVtYB15CiJg79EciGiAkQaU3L-4oCx7qcPqUsQGZqr # Blake3_256
+}
 ```
 
 The resulting DID document based on the [[ref: designated aliases]]
 attestation above, contains:
 
-* An `equivalentId` metadata for the did:webs:foo.com identifier
-* Three `alsoKnownAs` identifiers:
-  * the did:webs:foo.com identifier is a Designated alias which is also in
-    the equivalentId did document metadata.
-  * the did:web:example.com is a Designated alias
-  * NOTE: if the did:keri identifier were automatically generated and
-    included from the AID then that would be a valid designated alias and
-    alsoKnownAs value based on the AID
+* `alsoKnownAs` identifiers as follows:
+  * the authorized `did:web` version of the identifier.
+  * `did:web:example.com` is an alternative, authorized `did:web` identifier.
+  * the `did:webs:foo.com` identifier offers an alternative `did:webs` endpoint.
+  * the authorized `did:web` equivalent of the `did:webs:foo.com` identifier.
+  * the `did:keri` identifier is always included in `alsoKnownAs` (see [Also Known As](#also-known-as)).
+* An `equivalentId` metadata for the `did:webs:foo.com` identifier (since it shares an AID but has differnet host information AND is a `did:webs` identifier. Note that only `did:webs` identifiers should be included in `equivalentId`. See [Use of `equivalentId`](#use-of-equivalentid)).
 
 ```json
 {
@@ -1926,7 +1873,8 @@ attestation above, contains:
             "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     },
     "didResolutionMetadata": {
@@ -1937,7 +1885,6 @@ attestation above, contains:
         "witnesses": [],
         "versionId": "2",
         "equivalentId": [
-            "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ],
         "didDocUrl": "http://did-webs-service:7676/ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe/did.json",
