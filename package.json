@@ -1,6 +1,6 @@
 {
   "name": "did-webs-spec",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "private": true,
   "license": "Apache-2.0",
   "description": "ToIP KSWG did:webs specification written in Markdown and converted to HTML using the Spec-Up-T tool.",
