@@ -518,7 +518,7 @@ This section is normative.
 1. The `did:web` version of the DID document MUST include the `did:webs`
    version of the DID as an `alsoKnownAs` identifier, meaning it must also be in a valid, un-revoked designated aliases ACDC present in the keri.cesr stream.
 1. In order for the `did:webs` DID document to be valid, the `keri.cesr`
-   stream MUST contain at least ONE designated aliases ACDC in which the host and/or path are committed to.
+   stream MUST contain at least ONE designated aliases ACDC in which the host and path are committed to.
    ::: informative
    Committed to means placed in a designated aliases ACDC.
 
