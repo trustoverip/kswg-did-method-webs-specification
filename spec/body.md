@@ -2294,69 +2294,89 @@ Example:
 
 This section is normative.
 
-There are many security considerations related to web requests, storing
-information securely, etc. It is useful to address these considerations
-along with the common security threats found on the web.
+The security of `did:webs` separates *discovery* (finding `did.json` and
+`keri.cesr` on the web) from *authenticity* (cryptographically verifying the
+[[ref: KERI event stream]] and deriving the DID document). Authenticity of a
+resolved `did:webs` DID document MUST NOT depend on host honesty. A
+conforming resolver MUST establish authenticity by verifying the KERI event
+stream and applying the rules in [Read (Resolve)](#read-resolve) and
+[DID Documents](#did-documents).
 
 ### Common security threats
 
-1. All `did:webs` features MUST reduce the attack surface against common threats:
-    1. Broken Object Level Authorization (BOLA) attacks MUST be eliminated or reduced.
-    1. Denial of service (DoS) attacks MUST be eliminated or reduced.
-    1. Deletion attacks MUST be eliminated or reduced.
-    1. Duplicity detection MUST be available and reliable.
-    1. Eclipse attacks MUST be eliminated or reduced.
-    1. Forgery attacks MUST be eliminated or reduced.
-    1. Impersonation attacks MUST be eliminated or reduced.
-    1. Key Compromise attacks MUST be eliminated or reduced.
-    1. Malleability attacks MUST be eliminated or reduced.
-    1. Replay attacks MUST be eliminated or reduced.
+The following maps common threats to the mechanisms this method uses. MUST
+requirements below are limited to behaviors already required elsewhere in
+this specification; optional KERI infrastructure is expressed with SHOULD.
+
+1. **Forgery, malleability, and impersonation of DID document content.** A
+   resolver MUST accept a DID document only when it is derived from a
+   verified KERI event stream and equals the transformed hosted `did.json`,
+   per [Read (Resolve)](#read-resolve). Hosted JSON alone MUST NOT be trusted.
+1. **Unauthorized host or path aliases.** A resolver MUST NOT treat a
+   `did:webs` or corresponding `did:web` identifier as authorized unless it
+   appears in a valid, unrevoked designated aliases ACDC, per
+   [Designated Aliases](#designated-aliases).
+1. **Key compromise.** Controllers SHOULD use KERI [[ref: pre-rotation]] and
+   key rotation so that compromise of current signing keys does not allow an
+   attacker to permanently seize the AID. See
+   [Key state events](#key-state-events).
+1. **Duplicity and eclipse.** Controllers and resolvers SHOULD use KERI
+   [[ref: witnesses]] and [[ref: watchers]] to detect forked or inconsistently
+   published event streams, per
+   [AID controlled identifiers](#aid-controlled-identifiers).
+1. **Deletion or withholding of history.** A single host MAY omit, delay, or
+   serve stale copies of `did.json` or `keri.cesr`. Controllers MUST continue
+   to publish deactivated artifacts per [Deactivate](#deactivate). Resolvers
+   MAY discover alternate locations via [[ref: designated aliases]],
+   `equivalentId`, or other AID-based discovery; the method does not by
+   itself guarantee availability.
+1. **Replay.** KERI event verification and, where used, [[ref: KRAM]] constrain
+   replay of signed protocol messages. Resolvers MUST apply KERI verification
+   rules to the event stream; additional replay protections for discovery
+   traffic SHOULD follow the KEL / BADA-RUN / KRAM guidance in
+   [Concepts for securing `did:webs` information](#concepts-for-securing-didwebs-information).
+1. **Denial of service and BOLA.** Availability of hosts and authorization
+   bugs in surrounding applications are largely outside the scope of this
+   DID method. Hosting SHOULD follow accepted operational practice. The
+   method's authenticity guarantees remain those of KERI verification even
+   when a host is unavailable or untrustworthy.
 
 ### Using HTTPS
 
-Perfect protection from eavesdropping is not possible with HTTPS, for
-various reasons.
+HTTPS protects the confidentiality and integrity of the *transport* used to
+fetch `did.json` and `keri.cesr`. It does not, by itself, establish the
+authenticity of a `did:webs` DID document. Perfect protection from
+eavesdropping is not always possible with HTTPS.
 
 1. URLs of DID documents and [[ref: KERI event streams]] SHOULD be hosted
-   in a way that embodies accepted cybersecurity best practice. This is not
-   strictly necessary to guarantee the authenticity of the data. However,
-   the usage:
-    1. MUST safeguard privacy
-    1. MUST discourage denial of service
-    1. MUST work in concert with defense-in-depth mindset
-    1. MUST aid regulatory compliance
-    1. MUST allow for high-confidence fetches of the DID document and a KERI
-       event stream
+   according to accepted cybersecurity practice for public HTTPS resources
+   (for example, rate limiting and monitoring appropriate to the deployment).
 1. A [[ref: host]] that uses a fully qualified domain name of the
    [[ref: method-specific identifier]] MUST be secured by a TLS/SSL
    certificate.
-    1. The fully qualified domain name MUST match the common name used in the
-       SSL/TLS certificate.
-    1. The common name in the SSL/TLS certificate from the server MUST
-       correspond to the way the server is referenced in the URL. This means
-       that if the URL includes `www.example.com`, the common name in the
-       SSL/TLS certificate must be `www.example.com` as well.
+    1. The fully qualified domain name MUST match the common name (or an
+       appropriate subject alternative name) used in the SSL/TLS certificate.
+    1. The name in the SSL/TLS certificate from the server MUST correspond to
+       the way the server is referenced in the URL. For example, if the URL
+       includes `www.example.com`, the certificate MUST cover
+       `www.example.com` as well.
 1. Unlike `did:web`, the URL MAY use an IP address instead.
-    1. If it does, then the common name in the certificate MUST be the IP
-       address as well.
-1. Essentially, the URL and the certificate MUST NOT identify the server in
-   contradictory ways; subject to that constraint, how the server is
-   identified is flexible.
+    1. If it does, then the certificate MUST identify that IP address (for
+       example via common name or subject alternative name).
+1. The URL and the certificate MUST NOT identify the server in contradictory
+   ways; subject to that constraint, how the server is identified is flexible.
     1. The server certificate MAY be self-issued
-    1. OR it MAY chain back to an unknown certificate authority. However, to
-       ensure reasonable security hygiene, it MUST be valid. This has two
-       meanings, both of which are required:
-1. The certificate MUST satisfy whatever requirements are active in the
-   client, such that the client does accept the certificate and use it to
-   build and communicate over the encrypted HTTPS session where a DID
-   document and KERI event stream are fetched.
-1. The certificate MUST pass some common-sense validity tests, even if the
-   client is very permissive:
-    1. It MUST have a valid signature
-    1. It MUST NOT be expired or revoked or deny-listed
-    1. It MUST NOT have any broken links in its chain of trust.
-1. If a URL of a DID document or KERI event streams results in a redirect,
-   each URL MUST satisfy the same security requirements.
+    1. OR it MAY chain back to an unknown certificate authority. However, it
+       MUST be valid for the client to accept it for the HTTPS session:
+        1. The certificate MUST satisfy the client's active trust
+           requirements such that the client accepts it and uses it to
+           establish the encrypted session.
+        1. Even if the client is permissive about certificate authorities, the
+           certificate MUST have a valid signature, MUST NOT be expired,
+           revoked, or deny-listed, and MUST NOT have broken links in its
+           chain of trust.
+1. If a URL of a DID document or KERI event stream results in a redirect,
+   each URL in the redirect chain MUST satisfy the same security requirements.
 
 ### International Domain Names
 
@@ -2391,7 +2411,7 @@ signatures and other information in `did:webs`.
             1. MAY be anchored indirectly through a [[ref: TEL]] that itself
                is anchored to a KEL.
     1. All data that does not need to incur the cost of [[ref: KEL]] backing
-       for secuirty but can benefit from the latest data-state such as a
+       for security but can benefit from the latest data-state such as a
        distributed data-base MUST use _Best Available Data - Read, Update,
        Nullify_ ([[ref: BADA-RUN]]).
         1. BADA-RUN information MUST be ordered in a consistent way, using the following:
