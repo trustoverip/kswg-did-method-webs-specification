@@ -411,21 +411,21 @@ are statically hosted, they MUST be overwritten at the published location.
 
 #### Deactivate
 
-1. To deactivate a `did:webs` DID, a [[ref: controller]] SHOULD execute a KERI event that
-   has the effect of rotating the key(s) to null and continue to publish the
-   DID document and KERI event stream.
-    1. Once the deactivation events have been applied, the controller SHOULD
-       regenerate the DID document from the [[ref: KERI event stream]] and
-       republish both documents (`did.json` and `keri.cesr`) to the web
-       server, overwriting the existing files.
-    1. A controller SHOULD NOT make the DID document and 
-       [[ref: KERI event stream]] resources unavailable at the location where they have been
-       published.
-        ::: informative Rationale for not removing DID files
-        Removing the DID resources is considered to be a bad approach, as those resolving the DID
-        will not be able to determine if the web service is offline or the
-        DID has been deactivated.
-        :::
+1. To deactivate a `did:webs` DID, a [[ref: controller]] MUST execute a KERI
+   event that has the effect of rotating the key(s) to null (or otherwise
+   committing to no next keys), rendering the AID non-transferable.
+1. Once the deactivation event has been applied, the controller MUST
+   regenerate the DID document from the [[ref: KERI event stream]] and
+   republish both `did.json` and `keri.cesr` at the published location,
+   overwriting the existing files, so that resolvers can discover the
+   deactivated state.
+1. A controller MUST NOT make the DID document or [[ref: KERI event stream]]
+   resources unavailable at the location where they have been published.
+   ::: informative Rationale for not removing DID files
+   Removing the DID resources prevents resolvers from distinguishing an
+   offline host from a deactivated DID. Keeping the deactivated artifacts
+   published preserves end-verifiable evidence of deactivation.
+   :::
 
 ## DID Documents
 
