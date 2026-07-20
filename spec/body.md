@@ -311,30 +311,57 @@ event stream]] resources.
 
 #### Read (Resolve)
 
-1. Resolving a `did:webs` DID MUST follow these steps:
-    1. MUST convert the `did:webs` DID back to HTTPS URLs as described in
-       section [Target System(s)](#target-systems).
-    1. MUST execute HTTP GET requests on both the URL for the DID document
-       (ending in `/did.json`) and the URL for the [[ref: KERI event stream]] 
-       (ending in `/keri.cesr`). To maintain compatibility with `did:web` resolvers, 
-       the `did.json` MUST be formatted as a `did:web` DID document according to section 
-       [Transformation to did:web](#transformation-to-didweb-did-document).
-    1. MUST process the KERI event stream using 
-       [KERI specification](#KSWG-KERI) rules
-       to verify it, then derive the `did:webs` [[ref: DID document]] by
-       processing the KERI event stream according to section [DID Documents](#did-documents).
-    1. MUST transform the retrieved `did:web` DID document to the
-       corresponding `did:webs` DID document according to section
-       [Transformation to did:webs DID  Document](#transformation-to-didwebs-did-document).
-    1. MUST verify that the derived `did:webs` DID document equals the
-       transformed DID document. 
-    1. MUST return the `did:webs` DID document.
-    1. KERI-aware applications MAY use the KERI event stream to make use of
-       additional capabilities enabled by the use of KERI.
+This section is normative.
+
+Resolving a `did:webs` DID MUST follow the procedure below. If any step
+fails, the resolver MUST NOT return a DID document as a successful
+resolution result. When producing a DID Resolution result, the resolver
+MUST include an `error` in `didResolutionMetadata` as specified by
+[DID Resolution](https://www.w3.org/TR/did-resolution/) and
+[DID Core](#W3C-DID-CORE), leave `didDocument` empty, and leave
+`didDocumentMetadata` empty.
+
+1. Convert the `did:webs` DID to the HTTPS URLs for `did.json` and
+   `keri.cesr` as described in [Target System(s)](#target-systems). If the
+   DID is not a valid `did:webs` identifier, resolution MUST fail.
+1. Perform HTTP GET on both URLs.
+    1. If either request fails to return a successful response with a usable
+       body, resolution MUST fail.
+    1. The `did.json` resource MUST be a `did:web` DID document suitable for
+       transformation under
+       [Transformation to `did:webs` DID Document](#transformation-to-didwebs-did-document)
+       (published per
+       [Transformation to `did:web` DID Document](#transformation-to-didweb-did-document)).
+    1. The `keri.cesr` resource MUST be a [[ref: CESR]]-formatted
+       [[ref: KERI event stream]] with media type `application/cesr`.
+1. Process `keri.cesr` according to the [KERI specification](#KSWG-KERI).
+    1. If cryptographic verification fails, resolution MUST fail.
+    1. If event-stream divergence or forking is detected (see
+       [AID controlled identifiers](#aid-controlled-identifiers)), resolution
+       MUST fail.
+    1. If an optional `versionId` DID parameter is present, only events up to
+       and including that sequence number MUST be used for the remainder of
+       this procedure (see [Support for `versionId`](#support-for-versionid)).
+1. Confirm that a valid, unrevoked designated aliases ACDC in the KERI event
+   stream as limited by step 3 authorizes the resolved `did:webs` DID and
+   the corresponding `did:web` DID. If not, resolution MUST fail. See
+   [Designated Aliases](#designated-aliases) and
+   [Use of `equivalentId`](#use-of-equivalentid).
+1. Derive the `did:webs` DID document from the verified KERI event stream
+   according to [DID Documents](#did-documents).
+1. Transform the fetched `did:web` DID document to a `did:webs` DID document
+   according to
+   [Transformation to `did:webs` DID Document](#transformation-to-didwebs-did-document).
+   If the transformation cannot be applied, resolution MUST fail.
+1. The derived DID document MUST equal the transformed DID document. If they
+   differ, resolution MUST fail.
+1. Return the `did:webs` DID document, together with any DID document
+   metadata required by this specification (for example `versionId` and, when
+   applicable, `equivalentId` and `nextVersionId`).
 
 ::: informative Scope of KERI capabilities
-Capabilities beyond the verification of the DID document, the KERI event
-stream, and delegated identifiers are outside the scope of this
+KERI-aware applications MAY use the KERI event stream for capabilities
+beyond DID document verification. Those uses are outside the scope of this
 specification.
 :::
 
