@@ -256,9 +256,9 @@ The four DID Method Operations, create, read, update, and deactivate conceptuall
       - ACDCs for designated aliases
       - KERI Reply messages (Location Scheme, Endpoint Role Authorization)
 - Update: involves changing values in the DID document. These might include:
-  - **key change**: a KERI key rotation event changes the verificationMethods in a `did:webs` DID doc.
-  - **alsoKnownAs** or **equivalentID** change: adding an alsoKnownAs or equivalentID identifier in a DID doc.
-  - **service endpoint** change: [[ref: witness]] rotation, or other services may be added to the `service`
+  - **key change**: a KERI key rotation event changes the verification methods in a `did:webs` DID document.
+  - **alsoKnownAs** or **equivalentId** change: revoking and/or issuing designated aliases ACDCs that update `alsoKnownAs` and `equivalentId`.
+  - **service endpoint** change: [[ref: witness]] rotation, Location Scheme, or Endpoint Role Authorization updates that change the `service` array.
 - Deactivate: rotating the underlying KERI identifier to null, or no next keys.
 :::
 
@@ -340,25 +340,42 @@ specification.
 
 #### Update
 
-##### AID VersionID (Key) Update
+The `did:webs` identifier string itself — host, path, and AID — MUST NOT change.
+Updates change content derived from the [[ref: KERI event stream]] (keys,
+aliases, and service endpoints) and MUST be reflected by regenerating and
+republishing `did.json` and `keri.cesr` as soon as practical. If the resources
+are statically hosted, they MUST be overwritten at the published location.
 
-The `did:webs` identifier itself, including the host, path, and AID cannot change. Updates 
-include only rotations to new keys for the backing AID.
+##### Key rotation update
 
-1. If the AID of the `did:webs` DID is updatable, as in transferable, 
-   updates (key rotations) MUST be made to the AID by adding KERI key rotation 
-  events to the [[ref: KERI event stream]].
-1. Updates (rotations) to the KERI event stream that relate to the `did:webs` 
-   DID MUST be reflected in the DID Document as soon as possible.
-    1. If the `did:webs` DID files are statically hosted then they MUST be
-       republished to the web server, overwriting the existing files.
+1. If the AID of the `did:webs` DID is transferable, key rotation updates MUST
+   be made by adding KERI key rotation events to the [[ref: KERI event stream]].
+1. Rotating keys MUST change the keys that appear in the DID document and MUST
+   NOT change the identifier (AID).
 
-Rotating keys MUST change the keys that show up in the DID Document and MUST NOT
-change the identifier (AID).
+> Note: the `versionId` query parameter is not part of the identifier. It may
+> be used to request a point-in-time version of a DID document as of a given
+> KERI key event sequence number. See
+> [Support for `versionId`](#support-for-versionid).
 
-> Note: the versionId query parameter is not a part of the identifier yet it may
-> be used to request a point in time version of a DID document as of a given
-> KERI key event sequence number.
+##### Designated alias update
+
+1. Updates that add, remove, or replace authorized aliases (affecting
+   `alsoKnownAs` and `equivalentId`) MUST be performed by revoking and/or
+   issuing designated aliases ACDCs anchored to the [[ref: KERI event stream]],
+   according to section [Designated Aliases](#designated-aliases).
+1. After the KERI event stream reflects the updated aliases, the controller
+   MUST regenerate the DID document and republish `did.json` and `keri.cesr`.
+
+##### Service endpoint update
+
+1. Updates that change witness lists, Location Scheme records, or Endpoint Role
+   Authorization records MUST be performed by adding the corresponding KERI
+   events (rotation events for witness lists; `rpy` events for Location Scheme
+   and Endpoint Role Authorization) to the [[ref: KERI event stream]], according
+   to section [Service Endpoint Event Details](#service-endpoint-event-details).
+1. After the KERI event stream reflects the updated endpoints, the controller
+   MUST regenerate the DID document and republish `did.json` and `keri.cesr`.
 
 #### Deactivate
 
@@ -921,31 +938,48 @@ would result in a DID document with the following verification methods array:
             },
             {
               "id": "#1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
-              "type": "EcdsaSecp256k1VerificationKey2019",
+              "type": "JsonWebKey",
               "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
               "publicKeyJwk": {
+                "kid": "1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
+                "kty": "EC",
                 "crv": "secp256k1",
                 "x": "NtngWpJUr-rlNNbs0u-Aa8e16OwSJu6UiFf0Rdo1oJ4",
-                "y": "qN1jKupJlFsPFc1UkWinqljv4YE0mq_Ickwnjgasvmo",
-                "kty": "EC",
-                "kid": "WjKgJV7VRw3hmgU6--4v15c0Aewbcvat1BsRFTIqa5Q"
+                "y": "qN1jKupJlFsPFc1UkWinqljv4YE0mq_Ickwnjgasvmo"
               }
             },
             {
               "id": "#DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
-              "type": "Ed25519VerificationKey2020",
+              "type": "JsonWebKey",
               "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-              "publicKeyMultibase": "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+              "publicKeyJwk": {
+                "kid": "DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "A-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE"
+              }
             },
             {
               "id": "#DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu",
-              "type": "Ed25519VerificationKey2020",
+              "type": "JsonWebKey",
               "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-              "publicKeyMultibase": "zDqYpw38nznAUJeeFdhKBQutRKpyDXeXxxi1HjYUQXLas"
+              "publicKeyJwk": {
+                "kid": "DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "LWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNws"
+              }
             }
           ]
         }
         ```
+
+::: informative alternate key encodings
+Alternate verification method encodings such as `Ed25519VerificationKey2020`,
+`publicKeyMultibase`, or `CesrKey` MAY be returned when requested via the
+`transformKeys` DID parameter. See
+[Support for `transformKeys`](#support-for-transformkeys).
+:::
 
 ### Verification Relationships
 
@@ -1056,8 +1090,7 @@ see [Service Endpoint KERI events](#service-endpoint-event-details).
 
 It is important to note that DID document service endpoints are different
 than the KERI service endpoints detailed in
-[KERI Service Endpoints as DID Document Metadata]
-(#keri-service-endpoints-as-did-document-metadata).
+[KERI Service Endpoints as DID Document Metadata](#keri-service-endpoints-as-did-document-metadata).
 :::
 
 #### KERI Service Endpoints as DID Document Metadata
@@ -1073,7 +1106,7 @@ than the KERI service endpoints detailed in
 
     For example, the following `rpy` method declares that the AID
     `EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1` exposes the URL
-    `http://localhost:3902` for scheme `http`:
+    `http://127.0.0.1:3901/` for scheme `http`:
 
     ```json
     {
@@ -1127,18 +1160,36 @@ When transforming a `did:webs` DID document to the corresponding `did:web` DID d
 the following rules determine what MUST change to make a valid, transformed `did:web`
 version of the `did:webs` DID document. 
 
+1. A conforming implementation MUST NOT perform this transformation unless a
+   valid, unrevoked designated aliases ACDC in the [[ref: KERI event stream]]
+   authorizes both the `did:webs` subject DID and the corresponding `did:web`
+   DID formed by replacing the `did:webs` prefix with `did:web`. See
+   [Designated Aliases](#designated-aliases) and
+   [Also Known As](#also-known-as).
+
 ::: informative properties affected by transformation
-This transformation primarily affects 
-the `id` and `controller` properties, and, when authorized with a designated aliases
-ACDC, the `alsoKnownAs` properties.
+Without that authorization, a `did:web` form of a `did:webs` DID document is
+not a valid `did:webs` publication. When the precondition holds, this
+transformation rewrites subject-identifying DIDs that use the `did:webs`
+prefix: the top-level `id` and `controller`, every `verificationMethod`
+`controller` that equals the subject DID, and the reciprocal entry in
+`alsoKnownAs`.
 :::
 
 1. Transformation of the `did:webs` form of the DID Document to a `did:web` DID document
    MUST do the following:
-    1. The top-level `id` and `controller` property values of the DID document 
-       MUST replace the `did:webs` prefix string with the `did:web` prefix.
-    1. If authorized by a designated alias ACDC, the `did:webs` identifier contained in the top-level `alsonKnownAs` property MUST be replaced with the corresponding, authorized, `did:web` identifier (the same `did:web` identifier formerly contained in the `id` and `controller` fields.)
-    1. All other content of the DID document MUST not be modified.
+    1. Starting from the top-level `id` (a `did:webs` DID), form the
+       corresponding `did:web` DID by replacing the `did:webs` prefix with
+       `did:web`.
+    1. The top-level `id` and `controller` property values MUST be set to that
+       corresponding `did:web` DID.
+    1. For every `verificationMethod` entry whose `controller` equals the
+       original `did:webs` subject DID, the `controller` MUST be set to the
+       corresponding `did:web` DID.
+    1. The `alsoKnownAs` array MUST replace the corresponding `did:web` entry
+       with the original `did:webs` subject DID, so the transformed document
+       lists the `did:webs` form as an alias of the `did:web` subject.
+    1. All other content of the DID document MUST NOT be modified.
 
     For example, this transformation is used during the [Create](#create) DID
     method operation, given the following `did:webs` DID document:
@@ -1146,6 +1197,7 @@ ACDC, the `alsoKnownAs` properties.
     ```json
     {
         "id": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+        "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
         "verificationMethod": [
             {
                 "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1164,7 +1216,8 @@ ACDC, the `alsoKnownAs` properties.
             "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     }
     ```
@@ -1174,6 +1227,7 @@ ACDC, the `alsoKnownAs` properties.
     ```json
     {
       "id": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "controller": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
       "verificationMethod": [
           {
               "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1192,7 +1246,8 @@ ACDC, the `alsoKnownAs` properties.
           "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+          "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
       ]
     }
     ```
@@ -1205,18 +1260,36 @@ When transforming a `did:web` DID document to the corresponding `did:webs`
 DID document the following rules determine what MUST change to make a valid, 
 transformed `did:webs` version of the `did:web` DID document.
 
+1. A conforming implementation MUST NOT perform this transformation unless a
+   valid, unrevoked designated aliases ACDC in the [[ref: KERI event stream]]
+   authorizes both the `did:web` subject DID and the corresponding `did:webs`
+   DID formed by replacing the `did:web` prefix with `did:webs`. An arbitrary
+   `did:web` DID document MUST NOT be treated as a `did:webs` DID document
+   merely because its method-specific identifier ends in an AID. See
+   [Designated Aliases](#designated-aliases) and
+   [Also Known As](#also-known-as).
+
 ::: informative properties affected by transformation
-This transformation primarily affects
-the `id` and `controller` properties, and, when authorized with a designated 
-aliases ACDC, the `alsoKnownAs` properties.
+When the precondition holds, this transformation rewrites subject-identifying
+DIDs that use the `did:web` prefix: the top-level `id` and `controller`, every
+`verificationMethod` `controller` that equals the subject DID, and the
+reciprocal entry in `alsoKnownAs`.
 :::
 
 1. Transformation of the `did:web` DID document to a `did:webs` DID document 
    MUST do the following:
-    1. The top-level `id` and `controller` property values of the DID document
-       MUST replace the `did:web` prefix string with the `did:webs` prefix.
-    1. The `did:web` identifier contained in the top-level `alsonKnownAs` property MUST be replaced with the corresponding `did:webs` identifier (the same `did:webs` identifier formerly contained in the `id` and `controller` fields.)
-    1. All other content of the DID document MUST not be modified.
+    1. Starting from the top-level `id` (a `did:web` DID), form the
+       corresponding `did:webs` DID by replacing the `did:web` prefix with
+       `did:webs`.
+    1. The top-level `id` and `controller` property values MUST be set to that
+       corresponding `did:webs` DID.
+    1. For every `verificationMethod` entry whose `controller` equals the
+       original `did:web` subject DID, the `controller` MUST be set to the
+       corresponding `did:webs` DID.
+    1. The `alsoKnownAs` array MUST replace the corresponding `did:webs` entry
+       with the original `did:web` subject DID, so the transformed document
+       lists the `did:web` form as an alias of the `did:webs` subject.
+    1. All other content of the DID document MUST NOT be modified.
 1. A `did:webs` resolver MUST use this transformation during the
    [Read (Resolve)](#read-resolve) DID method operation.
 
@@ -1225,6 +1298,7 @@ aliases ACDC, the `alsoKnownAs` properties.
     ```json
     {
       "id": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "controller": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
       "verificationMethod": [
           {
               "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1243,7 +1317,8 @@ aliases ACDC, the `alsoKnownAs` properties.
           "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+          "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
       ]
     }
     ```
@@ -1254,6 +1329,7 @@ aliases ACDC, the `alsoKnownAs` properties.
     ```json
     {
         "id": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+        "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
         "verificationMethod": [
             {
                 "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1272,7 +1348,8 @@ aliases ACDC, the `alsoKnownAs` properties.
             "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     }
     ```
@@ -1286,18 +1363,21 @@ To walk through a real-world example, please see the GETTING STARTED guide in
 did:webs related tasks (and associated KERI commands) to demonstrate how they
 work together.
 
-The following blocks contain fully annotated examples of a KERI AID with
-two events, an [[ref: inception event]] and an [[ref: interaction event]].
+The following blocks contain a fully annotated example of a [[ref: KERI event stream]]
+for a KERI AID, including an [[ref: inception event]], [[ref: interaction event]]s
+that anchor TEL and ACDC data, reply (`rpy`) events for a witness endpoint, TEL
+registry and issuance events, and a designated aliases ACDC.
 
-* The Inception event designates some [[ref: witnesses]] in the `b` field.
-* The Inception event designates multiple public signing keys in the `k` field.
-* The Inception event designates multiple rotation keys in the `n` field.
-* The Interaction event cryptographically anchors data associated with the
-  SAID `EoLNCdag8PlHpsIwzbwe7uVNcPE1mTr-e1o9nCIDPWgM`.
-* The reply `rpy` events specify a Witness endpoint, etc.
+* The inception event designates a [[ref: witness]] in the `b` field, a
+  signing key in the `k` field, and a pre-rotated next key in the `n` field.
+* Interaction events cryptographically anchor the designated aliases TEL and
+  ACDC.
+* Reply (`rpy`) events specify Location Scheme and Endpoint Role Authorization
+  data for the witness.
+* The designated aliases ACDC authorizes the `did:webs` and `did:web` host and
+  path for the AID.
 
-Below, we show the KERI Event Stream that will be associated with the
-resulting generated DID document.
+Below, we show the KERI event stream associated with the resulting DID document.
 
 ```json
 {
@@ -1449,12 +1529,13 @@ Resulting DID document:
 
 ```json
 {
-  "id": "did:webs:did-webs-service%3A7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "id": "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "controller": "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
   "verificationMethod": [
     {
       "id": "#DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
       "type": "JsonWebKey",
-      "controller": "did:webs:did-webs-service%3A7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+      "controller": "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
       "publicKeyJwk": {
         "kid": "DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
         "kty": "OKP",
@@ -1690,7 +1771,7 @@ Resulting mailbox service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/mailbox",
   "type": "mailbox",
   "serviceEndpoint": {
-    "https": "https://mailbox.example.com:5635/",
+    "http": "http://mailbox.example.com:5635/"
   }
 }
 ```
@@ -1750,8 +1831,7 @@ seal referred to by the `id` property.
 2. The DID document service entry SHALL use `type` `KeriAgent` (or `agent`
    where registered) and `serviceEndpoint` as an object mapping scheme names
    to URLs or a single URL, consistent with
-   [KERI Service Endpoints as DID Document Metadata]
-   (#keri-service-endpoints-as-did-document-metadata).
+   [KERI Service Endpoints as DID Document Metadata](#keri-service-endpoints-as-did-document-metadata).
 
 Endpoint Role Authorization example (controller designates agent):
 
@@ -1790,21 +1870,34 @@ Resulting agent service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/agent",
   "type": "agent",
   "serviceEndpoint": {
-    "https": "https://agent.example.com:5636/",
+    "http": "http://agent.example.com:5636/"
   }
 }
 ```
 
 ### Designated Aliases
 
-1. An AID controller SHALL specify the [[ref: designated aliases]] that will
-   be listed in the `equivalentId` and `alsoKnownAs` properties by issuing a
+1. An AID controller SHALL authorize [[ref: designated aliases]] by issuing a
    Designated aliases verifiable attestation as an ACDC.
     1. This attestation MUST contain a set of [[ref: AID controlled identifiers]]
        that the AID controller authorizes.
-    1. If the identifier is a `did:webs` identifier then it is truly
-       equivalent and MUST be listed in the `equivalentId` property.
-    1. If the identifier is a DID then it MUST be listed in the `alsoKnownAs` property.
+    1. Authorized identifiers MUST be reflected in the DID document and DID
+       document metadata according to the following rules:
+
+| Identifier kind | DID document (`alsoKnownAs`) | DID document metadata (`equivalentId`) |
+|---|---|---|
+| Other same-AID `did:webs` DIDs | MUST appear in `alsoKnownAs` | MUST appear in `equivalentId` |
+| Corresponding or alternate `did:web` DIDs with the same AID | MUST appear in `alsoKnownAs` | MUST NOT appear in `equivalentId` |
+| `did:keri:<AID>` | MUST appear in `alsoKnownAs` | MUST NOT appear in `equivalentId` |
+
+::: informative resolved DID vs equivalentId
+The resolved DID itself appears as the document `id` and need not also appear
+in `equivalentId`. Authorization of the resolved DID comes from its presence
+in a valid, unrevoked designated aliases ACDC (see
+[Also Known As](#also-known-as) and
+[Use of `equivalentId`](#use-of-equivalentid)).
+`equivalentId` is DID document metadata, not a DID document property.
+:::
 
 #### Designated Aliases event details
 
@@ -1836,8 +1929,8 @@ showing five designated aliases:
 }
 ```
 
-The resulting DID document based on the [[ref: designated aliases]]
-attestation above, contains:
+The resulting resolution result based on the [[ref: designated aliases]]
+attestation above contains:
 
 * `alsoKnownAs` identifiers as follows:
   * the authorized `did:web` version of the identifier.
@@ -1845,7 +1938,10 @@ attestation above, contains:
   * the `did:webs:foo.com` identifier offers an alternative `did:webs` endpoint.
   * the authorized `did:web` equivalent of the `did:webs:foo.com` identifier.
   * the `did:keri` identifier is always included in `alsoKnownAs` (see [Also Known As](#also-known-as)).
-* An `equivalentId` metadata for the `did:webs:foo.com` identifier (since it shares an AID but has differnet host information AND is a `did:webs` identifier. Note that only `did:webs` identifiers should be included in `equivalentId`. See [Use of `equivalentId`](#use-of-equivalentid)).
+* `equivalentId` metadata listing the other authorized same-AID `did:webs`
+  identifier (`did:webs:foo.com:...`). Only other `did:webs` identifiers appear
+  in `equivalentId`; the resolved DID itself is the document `id`, not an
+  `equivalentId` entry. See [Use of `equivalentId`](#use-of-equivalentid).
 
 ```json
 {
@@ -1935,7 +2031,7 @@ This DID parameter is defined as a DID method
 
 1. This parameter MUST be implemented for a DID Resolver to return
    verification methods in a DID document in a desired format, such as
-   `JsonWebKey` or `Ed25519VerificationKey2020`.
+   `JsonWebKey`, `Ed25519VerificationKey2020`, or `CesrKey`.
 
 ::: informative transformKeys example
 Example:
@@ -2106,13 +2202,17 @@ section [Also Known As](#also-known-as)), but it has even stronger
 semantics, insofar as the logical equivalence is guaranteed by the DID
 method itself.
 
-1. The `did:webs` `equivalentId` metadata property SHOULD contain a list of
-   the controller AID [[ref: designated aliases]] `did:webs` DIDs that differ
-   in the [[ref: host]] and/or port portion of the [[ref: method-specific identifier]]
-   but share the same AID. Also see section [[ref: AID controlled identifiers]].
-1. `equivalentId` depends on the controller AIDs array of [[ref: designated aliases]]. 
-   A `did:webs` identifier MUST not verify unless it is found in
-   the `equivalentId` metadata that corresponds to the Designated aliases.
+1. A `did:webs` DID MUST NOT successfully resolve unless the resolved DID
+   appears in a valid, unrevoked designated aliases ACDC in the
+   [[ref: KERI event stream]].
+1. The `did:webs` `equivalentId` metadata property SHOULD contain the other
+   [[ref: designated aliases]] that are `did:webs` DIDs sharing the same AID
+   but differing in the [[ref: host]], port, and/or path portion of the
+   [[ref: method-specific identifier]]. Also see section
+   [[ref: AID controlled identifiers]] and
+   [Designated Aliases](#designated-aliases).
+1. The resolved DID itself MUST NOT be required to appear in `equivalentId`;
+   `equivalentId` lists other authorized same-AID `did:webs` DIDs.
 
 > Note that [[ref: AID controlled identifiers]] like `did:web` and
 > `did:keri` identifiers with the same AID are not listed in `equivalentId`
@@ -2146,7 +2246,8 @@ Example:
             "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     },
     "didResolutionMetadata": {
