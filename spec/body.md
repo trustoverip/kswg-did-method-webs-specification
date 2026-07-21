@@ -30,11 +30,11 @@ surpassing the one HTTPS gives to HTTP.
 ; did:webs DID structure
 webs-did = "did:webs:" host [pct-encoded-colon port] *(":" path) ":" aid
 
-; 'host' as defined in RFC 1035, RFC 1123, and RFC 2181
-host = *( ALPHA / DIGIT / "-" / "." )
-; Simplified representation; actual RFCs have more complex rules for domains
-; and IP addresses. In actual implementations replace with a mature host
-; parsing library.
+; Simplified host character class for illustration only.
+; Normative domain-name rules: RFC 1035, RFC 1123, and RFC 2181.
+; Normative URI host/authority (including IP forms): RFC 3986.
+; Implementations SHOULD use a mature URI/host parsing library.
+host = 1*( ALPHA / DIGIT / "-" / "." )
 
 ; 'pct-encoded-colon' represents a percent-encoded colon
 pct-encoded-colon = "%3A" / "%3a" ; Percent encoding for ':'
@@ -42,8 +42,8 @@ pct-encoded-colon = "%3A" / "%3a" ; Percent encoding for ':'
 ; 'port' number (simplified version)
 port = 1*5(DIGIT)
 
-; 'path' definition
-path = 1*(ALPHA / DIGIT / "-" / "_" / "~" / "." / "/")
+; Path segment between colons (no '/'; path separators in the DID are ':')
+path = 1*(ALPHA / DIGIT / "-" / "_" / "~" / ".")
 
 aid = said
 
@@ -53,9 +53,9 @@ said = said-256 / said-512
 ; Base64URLSafe characters (RFC 4648, excluding padding)
 base64urlsafe = ALPHA / DIGIT / "-" / "_"
 
-; The complete SAID primitive MUST conform to CESR code table [2], CESR spec
-; Section 11.4. The following currently defined digest codes produce 256-bit
-; or 512-bit SAIDs of 44 or 88 characters total.
+; The complete SAID primitive MUST conform to the CESR code tables.
+; The following currently defined digest codes produce 256-bit or
+; 512-bit SAIDs of 44 or 88 characters total.
 
 ; 256-bit SAIDs: 44 characters total (1 char code + 43 Base64URLSafe)
 one-char-code = "E" / "F" / "G" / "H" / "I"
@@ -66,13 +66,18 @@ two-char-code = "0D" / "0E" / "0F" / "0G"
 said-512 = two-char-code 86base64urlsafe
 ```
 
-1. The [[ref: host]] MUST abide by the formal rules describing valid syntax
-   found in [RFC 1035](#RFC1035), [RFC 1123](#RFC1123), and
-   [RFC 2181](#RFC2181).
+1. When the [[ref: host]] is a domain name, it MUST abide by the formal rules
+   describing valid domain name syntax found in [RFC 1035](#RFC1035),
+   [RFC 1123](#RFC1123), and [RFC 2181](#RFC2181).
+1. When interpreting the host as part of a URI authority — including port
+   handling and IP-literal forms — the [[ref: host]] MUST also conform to the
+   `host` production in [RFC 3986](#RFC3986). Implementations SHOULD use a
+   mature URI/host parsing library rather than relying solely on the
+   simplified ABNF `host` rule above.
 1. A port MAY be included and the colon MUST be percent encoded, like `%3a`,
    to prevent a conflict with paths.
 1. Directories and subdirectories MAY optionally be included, delimited by
-   colons rather than slashes.
+   colons rather than slashes. Path segments MUST NOT contain `/`.
 1. The KERI AID is a unique [[ref: identifier]] and MUST be derived from the
    [[ref: inception event]] of a KERI identifier.
 
@@ -106,7 +111,7 @@ for both `did:webs` and `did:web` resolution.
     1. MUST replace `did:webs` with `https://`
     1. MUST replace the "`:`"s in the method-specific identifier with path
        separators, "'/'"s
-    1. MUST convert the optional port percent encoding ("`%3A`") to a colon
+    1. MUST convert the optional port percent encoding (`%3A` or `%3a`) to a colon
        if present.
     1. MUST append "`/did.json`" to the resulting string.
 1. A GET on that URL MUST return the DID document.
@@ -116,7 +121,7 @@ for both `did:webs` and `did:web` resolution.
     2. A GET on that URL MUST return the KERI event stream for the AID in
        the `did:webs` identifier.
     3. The KERI event stream MUST be [[ref: CESR]]-formatted, MUST have the
-       media type of `application/cesr`, and the KERI events must be verifiable
+       media type of `application/cesr`, and the KERI events MUST be verifiable
        using the KERI rules.
 1. The `did:web` version of the DIDs MUST be the same (minus the `s`) and
    point to the same `did.json` file.
@@ -139,7 +144,7 @@ documents and KERI event stream URLs, based on the examples from the
       `https://w3c-ccg.github.io/user/alice/EKTh4PkRBiNWHQd263Eueu39gWmg7AfIfnEmNy6jinGR/did.json`
     * [[ref: KERI event stream]] URL would look like:
       `https://w3c-ccg.github.io/user/alice/EKTh4PkRBiNWHQd263Eueu39gWmg7AfIfnEmNy6jinGR/keri.cesr`
-* `did:webs:example.com%3A3000:user:alice:EKTh4PkRBiNWHQd263Eueu39gWmg7AfIfnEmNy6jinGR`
+* `did:webs:example.com%3a3000:user:alice:EKTh4PkRBiNWHQd263Eueu39gWmg7AfIfnEmNy6jinGR`
     * The DID document URL would look like:
       `https://example.com:3000/user/alice/EKTh4PkRBiNWHQd263Eueu39gWmg7AfIfnEmNy6jinGR/did.json`
     * [[ref: KERI event stream]] URL would look like:
@@ -182,7 +187,7 @@ processing the [[ref: KERI event stream]] using KERI puts the "s" of
    stream (e.g., the only difference in the [[ref: KERI event streams]]
    being the extra events in one of the KERI event streams, not yet
    reflected in the other).
-1. If the KERI event streams diverge from one other (e.g., one is not a
+1. If the KERI event streams diverge from one another (e.g., one is not a
    subset of the other), both the KERI event streams and the DIDs MUST be
    considered invalid.
 1. The verification of the KERI event stream SHOULD provide mechanisms for
@@ -203,7 +208,7 @@ proven that they have the same controller(s).
    very long time -- generations.
 1. When a `did:webs` DID is updated for another location the following rules
    MUST apply:
-    1. Its AID MUST not change.
+    1. Its AID MUST NOT change.
     1. The same [[ref: KERI event stream]] MUST be used to verify the DID
        document, with the only change being the [[ref: designated aliases]]
        list reflecting the new location identifier.
@@ -256,9 +261,9 @@ The four DID Method Operations, create, read, update, and deactivate conceptuall
       - ACDCs for designated aliases
       - KERI Reply messages (Location Scheme, Endpoint Role Authorization)
 - Update: involves changing values in the DID document. These might include:
-  - **key change**: a KERI key rotation event changes the verificationMethods in a `did:webs` DID doc.
-  - **alsoKnownAs** or **equivalentID** change: adding an alsoKnownAs or equivalentID identifier in a DID doc.
-  - **service endpoint** change: [[ref: witness]] rotation, or other services may be added to the `service`
+  - **key change**: a KERI key rotation event changes the verification methods in a `did:webs` DID document.
+  - **alsoKnownAs** or **equivalentId** change: revoking and/or issuing designated aliases ACDCs that update `alsoKnownAs` and `equivalentId`.
+  - **service endpoint** change: [[ref: witness]] rotation, Location Scheme, or Endpoint Role Authorization updates that change the `service` array.
 - Deactivate: rotating the underlying KERI identifier to null, or no next keys.
 :::
 
@@ -286,11 +291,11 @@ generated and hosted at the URLs specified in the following rules.
        methods and service endpoints.
     1. MUST derive the `did:webs` [[ref: DID document]] by processing the
        [[ref: KERI event stream]] according to section
-       [DID Documents](#did-documents).
+       [DID documents](#did-documents).
     1. For compatibility reasons, transformation of the derived `did:webs`
        DID document to the corresponding `did:web` DID document MUST be
        according to section 
-       [Transformation to did:web DID Document](#transformation-to-didweb-did-document).
+       [Transformation to did:web DID document](#transformation-to-didweb-did-document).
     1. MUST make the did:web DID document resource (`did.json`) and the
        [[ref: KERI event stream]] resource (`keri.cesr`) available at the
        selected location. See section [Target System(s)](#target-systems) for
@@ -311,74 +316,118 @@ event stream]] resources.
 
 #### Read (Resolve)
 
-1. Resolving a `did:webs` DID MUST follow these steps:
-    1. MUST convert the `did:webs` DID back to HTTPS URLs as described in
-       section [Target System(s)](#target-systems).
-    1. MUST execute HTTP GET requests on both the URL for the DID document
-       (ending in `/did.json`) and the URL for the [[ref: KERI event stream]] 
-       (ending in `/keri.cesr`). To maintain compatibility with `did:web` resolvers, 
-       the `did.json` MUST be formatted as a `did:web` DID document according to section 
-       [Transformation to did:web](#transformation-to-didweb-did-document).
-    1. MUST process the KERI event stream using 
-       [KERI specification](#KSWG-KERI) rules
-       to verify it, then derive the `did:webs` [[ref: DID document]] by
-       processing the KERI event stream according to section [DID Documents](#did-documents).
-    1. MUST transform the retrieved `did:web` DID document to the
-       corresponding `did:webs` DID document according to section
-       [Transformation to did:webs DID  Document](#transformation-to-didwebs-did-document).
-    1. MUST verify that the derived `did:webs` DID document equals the
-       transformed DID document. 
-    1. MUST return the `did:webs` DID document.
-    1. KERI-aware applications MAY use the KERI event stream to make use of
-       additional capabilities enabled by the use of KERI.
+This section is normative.
+
+Resolving a `did:webs` DID MUST follow the procedure below. If any step
+fails, the resolver MUST NOT return a DID document as a successful
+resolution result. When producing a DID Resolution result, the resolver
+MUST include an `error` in `didResolutionMetadata` as specified by
+[DID Resolution](https://www.w3.org/TR/did-resolution/) and
+[DID Core](#W3C-DID-CORE), leave `didDocument` empty, and leave
+`didDocumentMetadata` empty.
+
+1. Convert the `did:webs` DID to the HTTPS URLs for `did.json` and
+   `keri.cesr` as described in [Target System(s)](#target-systems). If the
+   DID is not a valid `did:webs` identifier, resolution MUST fail.
+1. Perform HTTP GET on both URLs.
+    1. If either request fails to return a successful response with a usable
+       body, resolution MUST fail.
+    1. The `did.json` resource MUST be a `did:web` DID document suitable for
+       transformation under
+       [Transformation to `did:webs` DID document](#transformation-to-didwebs-did-document)
+       (published per
+       [Transformation to `did:web` DID document](#transformation-to-didweb-did-document)).
+    1. The `keri.cesr` resource MUST be a [[ref: CESR]]-formatted
+       [[ref: KERI event stream]] with media type `application/cesr`.
+1. Process `keri.cesr` according to the [KERI specification](#KSWG-KERI).
+    1. If cryptographic verification fails, resolution MUST fail.
+    1. If event-stream divergence or forking is detected (see
+       [AID controlled identifiers](#aid-controlled-identifiers)), resolution
+       MUST fail.
+    1. If an optional `versionId` DID parameter is present, only events up to
+       and including that sequence number MUST be used for the remainder of
+       this procedure (see [Support for `versionId`](#support-for-versionid)).
+1. Confirm that a valid, unrevoked designated aliases ACDC in the KERI event
+   stream as limited by step 3 authorizes the resolved `did:webs` DID and
+   the corresponding `did:web` DID. If not, resolution MUST fail. See
+   [Designated Aliases](#designated-aliases) and
+   [Use of `equivalentId`](#use-of-equivalentid).
+1. Derive the `did:webs` DID document from the verified KERI event stream
+   according to [DID documents](#did-documents).
+1. Transform the fetched `did:web` DID document to a `did:webs` DID document
+   according to
+   [Transformation to `did:webs` DID document](#transformation-to-didwebs-did-document).
+   If the transformation cannot be applied, resolution MUST fail.
+1. The derived DID document MUST equal the transformed DID document. If they
+   differ, resolution MUST fail.
+1. Return the `did:webs` DID document, together with any DID document
+   metadata required by this specification (for example `versionId` and, when
+   applicable, `equivalentId` and `nextVersionId`).
 
 ::: informative Scope of KERI capabilities
-Capabilities beyond the verification of the DID document, the KERI event
-stream, and delegated identifiers are outside the scope of this
+KERI-aware applications MAY use the KERI event stream for capabilities
+beyond DID document verification. Those uses are outside the scope of this
 specification.
 :::
 
 #### Update
 
-##### AID VersionID (Key) Update
+The `did:webs` identifier string itself — host, path, and AID — MUST NOT change.
+Updates change content derived from the [[ref: KERI event stream]] (keys,
+aliases, and service endpoints) and MUST be reflected by regenerating and
+republishing `did.json` and `keri.cesr` as soon as practical. If the resources
+are statically hosted, they MUST be overwritten at the published location.
 
-The `did:webs` identifier itself, including the host, path, and AID cannot change. Updates 
-include only rotations to new keys for the backing AID.
+##### Key rotation update
 
-1. If the AID of the `did:webs` DID is updatable, as in transferable, 
-   updates (key rotations) MUST be made to the AID by adding KERI key rotation 
-  events to the [[ref: KERI event stream]].
-1. Updates (rotations) to the KERI event stream that relate to the `did:webs` 
-   DID MUST be reflected in the DID Document as soon as possible.
-    1. If the `did:webs` DID files are statically hosted then they MUST be
-       republished to the web server, overwriting the existing files.
+1. If the AID of the `did:webs` DID is transferable, key rotation updates MUST
+   be made by adding KERI key rotation events to the [[ref: KERI event stream]].
+1. Rotating keys MUST change the keys that appear in the DID document and MUST
+   NOT change the identifier (AID).
 
-Rotating keys MUST change the keys that show up in the DID Document and MUST NOT
-change the identifier (AID).
+> Note: the `versionId` query parameter is not part of the identifier. It may
+> be used to request a point-in-time version of a DID document as of a given
+> KERI key event sequence number. See
+> [Support for `versionId`](#support-for-versionid).
 
-> Note: the versionId query parameter is not a part of the identifier yet it may
-> be used to request a point in time version of a DID document as of a given
-> KERI key event sequence number.
+##### Designated alias update
+
+1. Updates that add, remove, or replace authorized aliases (affecting
+   `alsoKnownAs` and `equivalentId`) MUST be performed by revoking and/or
+   issuing designated aliases ACDCs anchored to the [[ref: KERI event stream]],
+   according to section [Designated Aliases](#designated-aliases).
+1. After the KERI event stream reflects the updated aliases, the controller
+   MUST regenerate the DID document and republish `did.json` and `keri.cesr`.
+
+##### Service endpoint update
+
+1. Updates that change witness lists, Location Scheme records, or Endpoint Role
+   Authorization records MUST be performed by adding the corresponding KERI
+   events (rotation events for witness lists; `rpy` events for Location Scheme
+   and Endpoint Role Authorization) to the [[ref: KERI event stream]], according
+   to section [Service Endpoint Event Details](#service-endpoint-event-details).
+1. After the KERI event stream reflects the updated endpoints, the controller
+   MUST regenerate the DID document and republish `did.json` and `keri.cesr`.
 
 #### Deactivate
 
-1. To deactivate a `did:webs` DID, a [[ref: controller]] SHOULD execute a KERI event that
-   has the effect of rotating the key(s) to null and continue to publish the
-   DID document and KERI event stream.
-    1. Once the deactivation events have been applied, the controller SHOULD
-       regenerate the DID document from the [[ref: KERI event stream]] and
-       republish both documents (`did.json` and `keri.cesr`) to the web
-       server, overwriting the existing files.
-    1. A controller SHOULD NOT make the DID document and 
-       [[ref: KERI event stream]] resources unavailable at the location where they have been
-       published.
-        ::: informative Rationale for not removing DID files
-        Removing the DID resources is considered to be a bad approach, as those resolving the DID
-        will not be able to determine if the web service is offline or the
-        DID has been deactivated.
-        :::
+1. To deactivate a `did:webs` DID, a [[ref: controller]] MUST execute a KERI
+   event that has the effect of rotating the key(s) to null (or otherwise
+   committing to no next keys), rendering the AID non-transferable.
+1. Once the deactivation event has been applied, the controller MUST
+   regenerate the DID document from the [[ref: KERI event stream]] and
+   republish both `did.json` and `keri.cesr` at the published location,
+   overwriting the existing files, so that resolvers can discover the
+   deactivated state.
+1. A controller MUST NOT make the DID document or [[ref: KERI event stream]]
+   resources unavailable at the location where they have been published.
+   ::: informative Rationale for not removing DID files
+   Removing the DID resources prevents resolvers from distinguishing an
+   offline host from a deactivated DID. Keeping the deactivated artifacts
+   published preserves end-verifiable evidence of deactivation.
+   :::
 
-## DID Documents
+## DID documents
 
 This section is normative.
 
@@ -399,7 +448,7 @@ To better understand the [[ref: cryptographically verifiable]] data structures u
 see the implementors guide description of the
 [KERI event stream chain of custody](#KERI-event-stream-chain-of-custody).
 To understand the KERI AID commands resulting in the
-[[ref: KERI Event Stream]] and the corresponding `did:webs` DID document see
+[[ref: KERI event stream]] and the corresponding `did:webs` DID document see
 the original
 [did:webs Reference Implementation getting started guide](#DIDWEBS-REF-IMPL).
 
@@ -445,7 +494,7 @@ current key state that will translate to values in the DID document.
 The following table lists the values from the example KSN and their
 associated values in a DID document:
 
-| Key State Field     | Definition                             | DID Document Value                  |
+| Key State Field     | Definition                             | DID document value                  |
 |:-------------------:|:--------------------------------------:|:-----------------------------------:|
 | `i`                 | The AID value                          | The DID Subject and DID Controller  |
 | `k`                 | Current set of public signing keys     | Verification Methods                |
@@ -514,9 +563,9 @@ This section is normative.
       :::
 
 1. The `did:webs` version of the DID document MAY include the `did:web`
-   version of the DID as an `alsoKnownAs` identifier, provided that there is a valid, un-revoked designated aliases ACDC present in the `keri.cesr` stream.
+   version of the DID as an `alsoKnownAs` identifier, provided that there is a valid, unrevoked designated aliases ACDC present in the `keri.cesr` stream.
 1. The `did:web` version of the DID document MUST include the `did:webs`
-   version of the DID as an `alsoKnownAs` identifier, meaning it must also be in a valid, un-revoked designated aliases ACDC present in the keri.cesr stream.
+   version of the DID as an `alsoKnownAs` identifier, meaning it MUST also be in a valid, unrevoked designated aliases ACDC present in the `keri.cesr` stream.
 1. In order for the `did:webs` DID document to be valid, the `keri.cesr`
    stream MUST contain at least ONE designated aliases ACDC in which the host and path are committed to.
    ::: informative
@@ -529,13 +578,13 @@ This section is normative.
 
    A consumer of a DID document can only know that a given `did:web` DID is
    trustable and committed to by the controller of the AID supporting a
-   `did:webs` DID only when that `did:web` DID is included in an un-revoked
+   `did:webs` DID only when that `did:web` DID is included in an unrevoked
    designated aliases ACDC.
 
    This protects against DID document malleability attacks where a malicious
    DID resolver host could inject fraudulent `did:web` DIDs into a DID
    document. As such, the consumer of a `did:webs` DID document should only
-   trust `did:web` DIDs that are found in an un-revoked designated aliases
+   trust `did:web` DIDs that are found in an unrevoked designated aliases
    ACDC present in the `keri.cesr` stream.
    :::
 1. `did:webs` DIDs MUST provide the corresponding `did:keri` as an
@@ -576,11 +625,8 @@ located in the [[ref: KERI event stream]] of the controller of the
 1. For each key listed in the array value of the `k` field of the KSN, a
    corresponding verification method MUST be generated in the DID document.
 1. The `type` property in the verification method for each public key MUST
-   be determined by the algorithm used to generate the public key.
-1. The verification method types used MUST be registered in the
-   [DID Specification Registries]
-   (<https://www.w3.org/TR/did-extensions-properties/#verification-relationships>)
-   and added to this specification.
+   be determined by the algorithm used to generate the public key, as
+   specified in the following subsections.
 1. The `id` property of the verification method MUST be a relative DID URL
    and use the KERI key [[ref: CESR]] value as the value of the fragment
    component, e.g., `"id": "#<identifier>"`.
@@ -723,18 +769,24 @@ would result in a DID document with the following verification methods array:
    codes) and generating the corresponding representation of the key in
    JSON Web Key form.
 
+::: informative illustrative secp256r1 encoding
+The following example shows the encoding shape for a Secp256r1 key. The AID
+and key material are illustrative of structure only and are not a verified
+live inception event.
+:::
+
 For example, a KERI AID with only the following inception event in its KEL:
 
 ```json
 {
   "v": "KERI10JSON0001ad_",
   "t": "icp",
-  "d": "EDP1vHcw_wc4M__Fj53-cJaBnZZASd-aMTaSyWEQ-PC2",
-  "i": "EDP1vHcw_wc4M__Fj53-cJaBnZZASd-aMTaSyWEQ-PC2",
+  "d": "EHs9k2mQpL7vNxR4wYtUcA1bZdF3gJhK8mNoPqRsTuVw",
+  "i": "EHs9k2mQpL7vNxR4wYtUcA1bZdF3gJhK8mNoPqRsTuVw",
   "s": "0",
   "kt": "1",
   "k": [
-    "1AAIAmbFVu-Wf8NCd63B9V0zsy7EgB_ocX2_n_Nh1FCmgF0Y",
+    "1AAIKs8mNpQ2vWxYzAbCdEfGhIjKlMnOpQrStUvWxYz01234"
   ]
   // ...
 }
@@ -745,15 +797,15 @@ would result in a DID document with the following verification methods array:
 ```json
   "verificationMethod": [
     {
-      "id": "#1AAIAmbFVu-Wf8NCd63B9V0zsy7EgB_ocX2_n_Nh1FCmgF0Y",
+      "id": "#1AAIKs8mNpQ2vWxYzAbCdEfGhIjKlMnOpQrStUvWxYz01234",
       "type": "JsonWebKey",
-      "controller": "did:webs:example.com:EDP1vHcw_wc4M__Fj53-cJaBnZZASd-aMTaSyWEQ-PC2",
+      "controller": "did:webs:example.com:EHs9k2mQpL7vNxR4wYtUcA1bZdF3gJhK8mNoPqRsTuVw",
       "publicKeyJwk": {
-        "kid": "1AAIAmbFVu-Wf8NCd63B9V0zsy7EgB_ocX2_n_Nh1FCmgF0Y",
+        "kid": "1AAIKs8mNpQ2vWxYzAbCdEfGhIjKlMnOpQrStUvWxYz01234",
         "kty": "EC",
         "crv": "secp256r1",
-        "x": "ZsVW75Z_w0J3rcH1XTOzLsSAH-hxfb-Q82HUUKaAXRg",
-        "y": "Lu6Uw785U3K05D-NPNoUInHPNUz9cGqWwjKjm5KL8FI"
+        "x": "xYz9AbCdEfGhIjKlMnOpQrStUvWx0123456789abcde",
+        "y": "yZ0BcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNo"
       }
     }
   ]
@@ -767,7 +819,6 @@ would result in a DID document with the following verification methods array:
    sections, another 
    [verification method](https://w3c-ccg.github.io/verifiable-conditions/)
    with a type of `ConditionalProof2022` MUST be generated in the DID document.
-   This verification method type is defined.
     1. It MUST be constructed according to the following rules:
         1. The `id` property of the verification method MUST be a relative
            DID URL and use the AID as the value of the fragment component,
@@ -921,53 +972,63 @@ would result in a DID document with the following verification methods array:
             },
             {
               "id": "#1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
-              "type": "EcdsaSecp256k1VerificationKey2019",
+              "type": "JsonWebKey",
               "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
               "publicKeyJwk": {
+                "kid": "1AAAAg299p5IMvuw71HW_TlbzGq5cVOQ7bRbeDuhheF-DPYk",
+                "kty": "EC",
                 "crv": "secp256k1",
                 "x": "NtngWpJUr-rlNNbs0u-Aa8e16OwSJu6UiFf0Rdo1oJ4",
-                "y": "qN1jKupJlFsPFc1UkWinqljv4YE0mq_Ickwnjgasvmo",
-                "kty": "EC",
-                "kid": "WjKgJV7VRw3hmgU6--4v15c0Aewbcvat1BsRFTIqa5Q"
+                "y": "qN1jKupJlFsPFc1UkWinqljv4YE0mq_Ickwnjgasvmo"
               }
             },
             {
               "id": "#DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
-              "type": "Ed25519VerificationKey2020",
+              "type": "JsonWebKey",
               "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-              "publicKeyMultibase": "zH3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV"
+              "publicKeyJwk": {
+                "kid": "DA-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "A-vW9ynSkvOWv5e7idtikLANdS6pGO2IHJy7v0rypvE"
+              }
             },
             {
               "id": "#DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu",
-              "type": "Ed25519VerificationKey2020",
+              "type": "JsonWebKey",
               "controller": "did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M",
-              "publicKeyMultibase": "zDqYpw38nznAUJeeFdhKBQutRKpyDXeXxxi1HjYUQXLas"
+              "publicKeyJwk": {
+                "kid": "DLWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNwu",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "LWJrsKIHrrn1Q1jy2oEi8Bmv6aEcwuyIqgngVf2nNws"
+              }
             }
           ]
         }
         ```
 
+::: informative alternate key encodings
+Alternate verification method encodings such as `Ed25519VerificationKey2020`,
+`publicKeyMultibase`, or `CesrKey` MAY be returned when requested via the
+`transformKeys` DID parameter. See
+[Support for `transformKeys`](#support-for-transformkeys).
+:::
+
 ### Verification Relationships
 
 This section is normative.
 
-`did:webs` commits to same keys for both authentication and assertion, a
-design facilitated by being built upon KERI. This section defines how the
-dual use of keys for `authentication` and `assertionMethod` is reflected
-normatively in verification relationships. A `did:webs` DID document MAY
-include any of these, or other properties, to express a specific
-verification relationship. Both the `authentication` and `assertionMethod`
-properties are optional though if included MUST follow the rules stated in
-this section. When verification relationships are present in a `did:webs`
-DID document, each committed signing key for a given `did:webs` DID MUST
-show up as both an `authentication` and `assertionMethod` verification
-relationship in the DID document.
+`did:webs` commits the same keys for both authentication and assertion, a
+design facilitated by being built upon KERI. A conforming `did:webs` DID
+document MUST include both the `authentication` and `assertionMethod`
+properties, generated according to the rules below. A `did:webs` DID
+document MAY also include other verification relationship properties.
 
 1. If the value of `kt` == 1 then the following rules MUST be applied:
     1. For each public key in `k` and its corresponding verification method,
-       two verification relationships MUST be generated in the DID document.
-       One verification relationship of type `authentication` and one of type
-       `assertionMethod`.
+       the DID document MUST include that verification method in both
+       `authentication` and `assertionMethod`.
         1. The `authentication` verification relationship SHALL define that
            the DID controller can authenticate using each key.
         1. The `assertionMethod` verification relationship SHALL define that
@@ -975,9 +1036,8 @@ relationship in the DID document.
 1. If the value of `kt` > 1 or if the value of `kt` is an array containing
    fractionally weighted thresholds then the following rules MUST be applied:
     1. For the verification method of type `ConditionalProof2022` (see section
-       [Thresholds](#thresholds)), two verification relationships MUST be
-       generated in the DID document. One of type `authentication` and one of
-       type `assertionMethod`.
+       [Thresholds](#thresholds)), the DID document MUST include that
+       verification method in both `authentication` and `assertionMethod`.
         1. The `authentication` verification relationship SHALL define that
            the DID controller can authenticate using a combination of
            multiple keys above the threshold.
@@ -1046,7 +1106,7 @@ This section is normative.
 
 ::: informative Service endpoint mapping and metadata
 For additional details about the mapping between KERI events and the Service
-Endpoints in the DID Document, such as 
+Endpoints in the DID document, such as 
 - witness,
 - mailbox,
 - delegator OOBI, and 
@@ -1056,11 +1116,10 @@ see [Service Endpoint KERI events](#service-endpoint-event-details).
 
 It is important to note that DID document service endpoints are different
 than the KERI service endpoints detailed in
-[KERI Service Endpoints as DID Document Metadata]
-(#keri-service-endpoints-as-did-document-metadata).
+[KERI Service Endpoints as DID document metadata](#keri-service-endpoints-as-did-document-metadata).
 :::
 
-#### KERI Service Endpoints as DID Document Metadata
+#### KERI Service Endpoints as DID document metadata
 
 1. `did:webs` endpoints MUST be specified using the two data sets KERI uses
    to define service endpoints: Location Schemes and Endpoint Role
@@ -1073,7 +1132,7 @@ than the KERI service endpoints detailed in
 
     For example, the following `rpy` method declares that the AID
     `EIDJUg2eR8YGZssffpuqQyiXcRVz2_Gw_fcAVWpUMie1` exposes the URL
-    `http://localhost:3902` for scheme `http`:
+    `http://127.0.0.1:3901/` for scheme `http`:
 
     ```json
     {
@@ -1119,7 +1178,7 @@ processing. The protocol ensures that all data is signed in transport and
 at rest and versioned to ensure only the latest signed data is available.
 :::
 
-### Transformation to `did:web` DID Document
+### Transformation to `did:web` DID document
 
 This section is normative.
 
@@ -1127,18 +1186,36 @@ When transforming a `did:webs` DID document to the corresponding `did:web` DID d
 the following rules determine what MUST change to make a valid, transformed `did:web`
 version of the `did:webs` DID document. 
 
+1. A conforming implementation MUST NOT perform this transformation unless a
+   valid, unrevoked designated aliases ACDC in the [[ref: KERI event stream]]
+   authorizes both the `did:webs` subject DID and the corresponding `did:web`
+   DID formed by replacing the `did:webs` prefix with `did:web`. See
+   [Designated Aliases](#designated-aliases) and
+   [Also Known As](#also-known-as).
+
 ::: informative properties affected by transformation
-This transformation primarily affects 
-the `id` and `controller` properties, and, when authorized with a designated aliases
-ACDC, the `alsoKnownAs` properties.
+Without that authorization, a `did:web` form of a `did:webs` DID document is
+not a valid `did:webs` publication. When the precondition holds, this
+transformation rewrites subject-identifying DIDs that use the `did:webs`
+prefix: the top-level `id` and `controller`, every `verificationMethod`
+`controller` that equals the subject DID, and the reciprocal entry in
+`alsoKnownAs`.
 :::
 
-1. Transformation of the `did:webs` form of the DID Document to a `did:web` DID document
+1. Transformation of the `did:webs` form of the DID document to a `did:web` DID document
    MUST do the following:
-    1. The top-level `id` and `controller` property values of the DID document 
-       MUST replace the `did:webs` prefix string with the `did:web` prefix.
-    1. If authorized by a designated alias ACDC, the `did:webs` identifier contained in the top-level `alsonKnownAs` property MUST be replaced with the corresponding, authorized, `did:web` identifier (the same `did:web` identifier formerly contained in the `id` and `controller` fields.)
-    1. All other content of the DID document MUST not be modified.
+    1. Starting from the top-level `id` (a `did:webs` DID), form the
+       corresponding `did:web` DID by replacing the `did:webs` prefix with
+       `did:web`.
+    1. The top-level `id` and `controller` property values MUST be set to that
+       corresponding `did:web` DID.
+    1. For every `verificationMethod` entry whose `controller` equals the
+       original `did:webs` subject DID, the `controller` MUST be set to the
+       corresponding `did:web` DID.
+    1. The `alsoKnownAs` array MUST replace the corresponding `did:web` entry
+       with the original `did:webs` subject DID, so the transformed document
+       lists the `did:webs` form as an alias of the `did:web` subject.
+    1. All other content of the DID document MUST NOT be modified.
 
     For example, this transformation is used during the [Create](#create) DID
     method operation, given the following `did:webs` DID document:
@@ -1146,6 +1223,7 @@ ACDC, the `alsoKnownAs` properties.
     ```json
     {
         "id": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+        "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
         "verificationMethod": [
             {
                 "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1159,12 +1237,19 @@ ACDC, the `alsoKnownAs` properties.
                 }
             }
         ],
+        "authentication": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
+        "assertionMethod": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
         "service": [],
         "alsoKnownAs": [
             "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     }
     ```
@@ -1174,6 +1259,7 @@ ACDC, the `alsoKnownAs` properties.
     ```json
     {
       "id": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "controller": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
       "verificationMethod": [
           {
               "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1187,17 +1273,24 @@ ACDC, the `alsoKnownAs` properties.
               }
           }
       ],
+      "authentication": [
+        "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+      ],
+      "assertionMethod": [
+        "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+      ],
       "service": [],
       "alsoKnownAs": [
           "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+          "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
       ]
     }
     ```
 
-### Transformation to `did:webs` DID Document
+### Transformation to `did:webs` DID document
 
 This section is normative.
 
@@ -1205,18 +1298,36 @@ When transforming a `did:web` DID document to the corresponding `did:webs`
 DID document the following rules determine what MUST change to make a valid, 
 transformed `did:webs` version of the `did:web` DID document.
 
+1. A conforming implementation MUST NOT perform this transformation unless a
+   valid, unrevoked designated aliases ACDC in the [[ref: KERI event stream]]
+   authorizes both the `did:web` subject DID and the corresponding `did:webs`
+   DID formed by replacing the `did:web` prefix with `did:webs`. An arbitrary
+   `did:web` DID document MUST NOT be treated as a `did:webs` DID document
+   merely because its method-specific identifier ends in an AID. See
+   [Designated Aliases](#designated-aliases) and
+   [Also Known As](#also-known-as).
+
 ::: informative properties affected by transformation
-This transformation primarily affects
-the `id` and `controller` properties, and, when authorized with a designated 
-aliases ACDC, the `alsoKnownAs` properties.
+When the precondition holds, this transformation rewrites subject-identifying
+DIDs that use the `did:web` prefix: the top-level `id` and `controller`, every
+`verificationMethod` `controller` that equals the subject DID, and the
+reciprocal entry in `alsoKnownAs`.
 :::
 
 1. Transformation of the `did:web` DID document to a `did:webs` DID document 
    MUST do the following:
-    1. The top-level `id` and `controller` property values of the DID document
-       MUST replace the `did:web` prefix string with the `did:webs` prefix.
-    1. The `did:web` identifier contained in the top-level `alsonKnownAs` property MUST be replaced with the corresponding `did:webs` identifier (the same `did:webs` identifier formerly contained in the `id` and `controller` fields.)
-    1. All other content of the DID document MUST not be modified.
+    1. Starting from the top-level `id` (a `did:web` DID), form the
+       corresponding `did:webs` DID by replacing the `did:web` prefix with
+       `did:webs`.
+    1. The top-level `id` and `controller` property values MUST be set to that
+       corresponding `did:webs` DID.
+    1. For every `verificationMethod` entry whose `controller` equals the
+       original `did:web` subject DID, the `controller` MUST be set to the
+       corresponding `did:webs` DID.
+    1. The `alsoKnownAs` array MUST replace the corresponding `did:webs` entry
+       with the original `did:web` subject DID, so the transformed document
+       lists the `did:web` form as an alias of the `did:webs` subject.
+    1. All other content of the DID document MUST NOT be modified.
 1. A `did:webs` resolver MUST use this transformation during the
    [Read (Resolve)](#read-resolve) DID method operation.
 
@@ -1225,6 +1336,7 @@ aliases ACDC, the `alsoKnownAs` properties.
     ```json
     {
       "id": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "controller": "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
       "verificationMethod": [
           {
               "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1238,12 +1350,19 @@ aliases ACDC, the `alsoKnownAs` properties.
               }
           }
       ],
+      "authentication": [
+        "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+      ],
+      "assertionMethod": [
+        "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+      ],
       "service": [],
       "alsoKnownAs": [
           "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
           "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+          "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+          "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
       ]
     }
     ```
@@ -1254,6 +1373,7 @@ aliases ACDC, the `alsoKnownAs` properties.
     ```json
     {
         "id": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+        "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
         "verificationMethod": [
             {
                 "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1267,12 +1387,19 @@ aliases ACDC, the `alsoKnownAs` properties.
                 }
             }
         ],
+        "authentication": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
+        "assertionMethod": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
         "service": [],
         "alsoKnownAs": [
             "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     }
     ```
@@ -1286,18 +1413,21 @@ To walk through a real-world example, please see the GETTING STARTED guide in
 did:webs related tasks (and associated KERI commands) to demonstrate how they
 work together.
 
-The following blocks contain fully annotated examples of a KERI AID with
-two events, an [[ref: inception event]] and an [[ref: interaction event]].
+The following blocks contain a fully annotated example of a [[ref: KERI event stream]]
+for a KERI AID, including an [[ref: inception event]], [[ref: interaction event]]s
+that anchor TEL and ACDC data, reply (`rpy`) events for a witness endpoint, TEL
+registry and issuance events, and a designated aliases ACDC.
 
-* The Inception event designates some [[ref: witnesses]] in the `b` field.
-* The Inception event designates multiple public signing keys in the `k` field.
-* The Inception event designates multiple rotation keys in the `n` field.
-* The Interaction event cryptographically anchors data associated with the
-  SAID `EoLNCdag8PlHpsIwzbwe7uVNcPE1mTr-e1o9nCIDPWgM`.
-* The reply `rpy` events specify a Witness endpoint, etc.
+* The inception event designates a [[ref: witness]] in the `b` field, a
+  signing key in the `k` field, and a pre-rotated next key in the `n` field.
+* Interaction events cryptographically anchor the designated aliases TEL and
+  ACDC.
+* Reply (`rpy`) events specify Location Scheme and Endpoint Role Authorization
+  data for the witness.
+* The designated aliases ACDC authorizes the `did:webs` and `did:web` host and
+  path for the AID.
 
-Below, we show the KERI Event Stream that will be associated with the
-resulting generated DID document.
+Below, we show the KERI event stream associated with the resulting DID document.
 
 ```json
 {
@@ -1449,12 +1579,13 @@ Resulting DID document:
 
 ```json
 {
-  "id": "did:webs:did-webs-service%3A7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "id": "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "controller": "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
   "verificationMethod": [
     {
       "id": "#DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
       "type": "JsonWebKey",
-      "controller": "did:webs:did-webs-service%3A7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+      "controller": "did:webs:did-webs-service%3a7702:EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
       "publicKeyJwk": {
         "kid": "DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6",
         "kty": "OKP",
@@ -1462,6 +1593,12 @@ Resulting DID document:
         "x": "mDsBBRIoASj4-SCPi1UXsvT4Wom3RAXEWHnzvwBxm_o"
       }
     }
+  ],
+  "authentication": [
+    "#DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6"
+  ],
+  "assertionMethod": [
+    "#DJg7AQUSKAEo-Pkgj4tVF7L0-FqJt0QFxFh5878AcZv6"
   ],
   "service": [
     {
@@ -1486,8 +1623,8 @@ Resulting DID document:
 
 This section is normative.
 
-[DID Documents](#did-documents) introduced the core [[ref: KERI event stream]]
-and related DID Document concepts. This section provides additional details
+[DID documents](#did-documents) introduced the core [[ref: KERI event stream]]
+and related DID document concepts. This section provides additional details
 regarding the basic types of KERI events and how they relate to the DID
 document.
 
@@ -1500,7 +1637,7 @@ document.
 1. If a key state event does not commit to a future set of rotation key
    hashes, then the AID SHALL NOT be rotated to new keys in the future
    (KERI parlance is that the key state of the AID becomes
-   'non-transferrable').
+   'non-transferable').
 1. If a key state event does commit to a future set of rotation key hashes,
    then any future key state rotation MUST be to those commitment keys.
    This foundation of [[ref: pre-rotation]] is post-quantum safe and allows
@@ -1512,7 +1649,7 @@ document.
        inception event MUST commit to a set of future rotation key hashes.
     1. When processing the [[ref: KERI event stream]], if there are no
        rotation events after the inception event, then this is the current
-       key state of the AID and MUST be reflected in the DID Document as
+       key state of the AID and MUST be reflected in the DID document as
        specified in [Verification Methods](#verification-methods) and
        [Verification Relationships](#verification-relationships).
 1. [[ref: Rotation events]] MUST come after inception events.
@@ -1521,27 +1658,22 @@ document.
 1. Rotation events MUST only change the key state to the previously
    committed to rotation keys.
 1. Either the inception event or the last rotation event, if any, is the
-   current key state of the AID and MUST be reflected in the DID Document
+   current key state of the AID and MUST be reflected in the DID document
    as specified in [Verification Methods](#verification-methods) and
    [Verification Relationships](#verification-relationships).
 
 ::: informative KERI event references
-You can learn more about the inception event in the [KERI
-specification](#KSWG-KERI) and you can see an example inception event. To learn about
-future rotation key commitment, see the sections about
-[pre-rotation](#pre-rotation) and the [KERI specification](#KSWG-KERI).
-
-You can learn more about rotation events in the [KERI specification](#KSWG-KERI) and you
-can see an example rotation event. To learn about future rotation key
-commitment, see the sections about [pre-rotation](#pre-rotation) and the
-[KERI specification](#KSWG-KERI).
+For inception events, rotation events, and pre-rotation (future rotation key
+commitment), see the [KERI specification](#KSWG-KERI) and
+[Pre-rotation](#pre-rotation) in this document. Worked examples of inception
+and interaction events appear in [Full Example](#full-example).
 :::
 
 ### Delegation KERI event details
 
 This section focuses on delegation relationships between KERI AIDs.
-[DID Documents](#did-documents) introduced the core [[ref: KERI event stream]]
-and related DID Document concepts. This section provides additional details
+[DID documents](#did-documents) introduced the core [[ref: KERI event stream]]
+and related DID document concepts. This section provides additional details
 regarding the types of KERI delegation events and how they relate to the DID
 document. See [Basic KERI event details](#basic-keri-event-details) for
 further detail on basic KERI event types including how they relate to the
@@ -1579,7 +1711,7 @@ In did:webs, KERI-derived service endpoints are defined by **Location Scheme**
 [[ref: KERI event stream]]. Location Scheme records declare URL(s) for a
 given scheme for an AID; Endpoint Role Authorization relates a role (e.g.
 mailbox, agent) of one AID to another. See
-[KERI Service Endpoints as DID Document Metadata](#keri-service-endpoints-as-did-document-metadata).
+[KERI Service Endpoints as DID document metadata](#keri-service-endpoints-as-did-document-metadata).
 
 When the event stream (or equivalent key state and endpoint data) for a
 `did:webs` DID establishes a witness, mailbox, or agent the DID document
@@ -1690,7 +1822,7 @@ Resulting mailbox service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/mailbox",
   "type": "mailbox",
   "serviceEndpoint": {
-    "https": "https://mailbox.example.com:5635/",
+    "http": "http://mailbox.example.com:5635/"
   }
 }
 ```
@@ -1747,11 +1879,10 @@ seal referred to by the `id` property.
    `/loc/scheme` declare URLs for that agent AID. Implementations obtain
    agent endpoints from Endpoint Role data (e.g. KERI `ends` table) plus
    Location Scheme data (e.g. `locs` table).
-2. The DID document service entry SHALL use `type` `KeriAgent` (or `agent`
-   where registered) and `serviceEndpoint` as an object mapping scheme names
-   to URLs or a single URL, consistent with
-   [KERI Service Endpoints as DID Document Metadata]
-   (#keri-service-endpoints-as-did-document-metadata).
+2. The DID document service entry SHALL use `type` `agent` and
+   `serviceEndpoint` as an object mapping scheme names to URLs or a single
+   URL, consistent with
+   [KERI Service Endpoints as DID document metadata](#keri-service-endpoints-as-did-document-metadata).
 
 Endpoint Role Authorization example (controller designates agent):
 
@@ -1790,21 +1921,34 @@ Resulting agent service entry:
   "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/agent",
   "type": "agent",
   "serviceEndpoint": {
-    "https": "https://agent.example.com:5636/",
+    "http": "http://agent.example.com:5636/"
   }
 }
 ```
 
 ### Designated Aliases
 
-1. An AID controller SHALL specify the [[ref: designated aliases]] that will
-   be listed in the `equivalentId` and `alsoKnownAs` properties by issuing a
+1. An AID controller SHALL authorize [[ref: designated aliases]] by issuing a
    Designated aliases verifiable attestation as an ACDC.
     1. This attestation MUST contain a set of [[ref: AID controlled identifiers]]
        that the AID controller authorizes.
-    1. If the identifier is a `did:webs` identifier then it is truly
-       equivalent and MUST be listed in the `equivalentId` property.
-    1. If the identifier is a DID then it MUST be listed in the `alsoKnownAs` property.
+    1. Authorized identifiers MUST be reflected in the DID document and DID
+       document metadata according to the following rules:
+
+| Identifier kind | DID document (`alsoKnownAs`) | DID document metadata (`equivalentId`) |
+|---|---|---|
+| Other same-AID `did:webs` DIDs | MUST appear in `alsoKnownAs` | MUST appear in `equivalentId` |
+| Corresponding or alternate `did:web` DIDs with the same AID | MUST appear in `alsoKnownAs` | MUST NOT appear in `equivalentId` |
+| `did:keri:<AID>` | MUST appear in `alsoKnownAs` | MUST NOT appear in `equivalentId` |
+
+::: informative resolved DID vs equivalentId
+The resolved DID itself appears as the document `id` and need not also appear
+in `equivalentId`. Authorization of the resolved DID comes from its presence
+in a valid, unrevoked designated aliases ACDC (see
+[Also Known As](#also-known-as) and
+[Use of `equivalentId`](#use-of-equivalentid)).
+`equivalentId` is DID document metadata, not a DID document property.
+:::
 
 #### Designated Aliases event details
 
@@ -1816,7 +1960,7 @@ showing five designated aliases:
 {
   "v": "ACDC10JSON000574_",
   "d": "EA7VoZA6B9hmhmJAuWUU4lNxRBIQ3sv6JZXGeLnJCRGZ",
-  "i": "EEOqE46OOSl1k1JO3ggQTGuQR3nnWE8bYjOPnJ53m8CP",
+  "i": "ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
   "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
   "s": "EN6Oh5XSD5_q2Hgu-aqpdfbVepdpYpFlgz6zvJL5b_r5",
   "a": {
@@ -1836,8 +1980,8 @@ showing five designated aliases:
 }
 ```
 
-The resulting DID document based on the [[ref: designated aliases]]
-attestation above, contains:
+The resulting resolution result based on the [[ref: designated aliases]]
+attestation above contains:
 
 * `alsoKnownAs` identifiers as follows:
   * the authorized `did:web` version of the identifier.
@@ -1845,12 +1989,16 @@ attestation above, contains:
   * the `did:webs:foo.com` identifier offers an alternative `did:webs` endpoint.
   * the authorized `did:web` equivalent of the `did:webs:foo.com` identifier.
   * the `did:keri` identifier is always included in `alsoKnownAs` (see [Also Known As](#also-known-as)).
-* An `equivalentId` metadata for the `did:webs:foo.com` identifier (since it shares an AID but has differnet host information AND is a `did:webs` identifier. Note that only `did:webs` identifiers should be included in `equivalentId`. See [Use of `equivalentId`](#use-of-equivalentid)).
+* `equivalentId` metadata listing the other authorized same-AID `did:webs`
+  identifier (`did:webs:foo.com:...`). Only other `did:webs` identifiers appear
+  in `equivalentId`; the resolved DID itself is the document `id`, not an
+  `equivalentId` entry. See [Use of `equivalentId`](#use-of-equivalentid).
 
 ```json
 {
     "didDocument": {
         "id": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+        "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
         "verificationMethod": [
             {
                 "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -1863,6 +2011,12 @@ attestation above, contains:
                     "x": "evT4j6Yw3uHpwsw5NEmSR8-4x3S-BA-s6Thjd51oeOs"
                 }
             }
+        ],
+        "authentication": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
+        "assertionMethod": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
         ],
         "service": [],
         "alsoKnownAs": [
@@ -1917,7 +2071,7 @@ design, see section [KERI Fundamentals](#keri-fundamentals).
    that corresponds to the value of the `versionId` DID parameter.
 
 ::: informative versionId example
-See section [DID Documents](#did-documents) for details.
+See section [DID documents](#did-documents) for details.
 
 Example:
 
@@ -1935,7 +2089,7 @@ This DID parameter is defined as a DID method
 
 1. This parameter MUST be implemented for a DID Resolver to return
    verification methods in a DID document in a desired format, such as
-   `JsonWebKey` or `Ed25519VerificationKey2020`.
+   `JsonWebKey`, `Ed25519VerificationKey2020`, or `CesrKey`.
 
 ::: informative transformKeys example
 Example:
@@ -1948,15 +2102,13 @@ did:webs:example.com:Ew-o5dU5WjDrxDBK4b4HrF82_rYb6MX6xsegjq4n0Y7M?transformKeys=
 
 #### `CesrKey` and `publicKeyCesr`
 
-This specification defines the following extensions to the DID document
-data model in accordance with the [DID Spec Registries](#W3C-DID-REGISTRIES):
+This specification defines the following DID document extensions:
 
-1. Extension verification method `type` `CesrKey` MAY be available in a
-   `did:webs` DID document to express a public key encoded in [[ref: CESR]]
-   format.
-1. Extension verification method property `publicKeyCesr` MAY be available
-   in a `did:webs` DID document to provide a string value whose content is
-   the CESR representation of a public key.
+1. Verification method `type` `CesrKey` MAY be available in a `did:webs` DID
+   document to express a public key encoded in [[ref: CESR]] format.
+1. Verification method property `publicKeyCesr` MAY be available in a
+   `did:webs` DID document to provide a string value whose content is the
+   CESR representation of a public key.
 1. The verification method type `CesrKey` MAY be used as the value of the
    `transformKeys` DID parameter.
 
@@ -2032,7 +2184,7 @@ At the moment, this specification does not define the use of any specific
 may in the future include various metadata, such as which KERI Watchers were
 used during the resolution process.
 
-### DID Document Metadata
+### DID document metadata
 
 This section of the specification defines how various DID document metadata
 properties are used by the `did:webs` method.
@@ -2044,7 +2196,7 @@ version of the DID document that has been resolved.
 
 1. The `did:webs` versionId MUST be the sequence number (i.e. the `s`
    field) of the last event in the [[ref: KERI event stream]] that was used
-   to construct the DID document according to the rules in section [DID Documents](#did-documents).
+   to construct the DID document according to the rules in section [DID documents](#did-documents).
 1. If the DID parameter `versionId` (see section [Support for `versionId`](#support-for-versionid))
    was used when resolving the `did:webs` DID, and if the DID Resolution process was successful, then
    this corresponding DID document metadata property MUST be guaranteed to
@@ -2074,7 +2226,7 @@ version of the DID document after the version that has been resolved.
 1. The `did:webs` `nextVersionId` MUST be the sequence number (i.e. the `s`
    field) of the next event in the [[ref: KERI event stream]] after the
    last one that was used to construct the DID document according to the
-   rules in section [DID Documents](#did-documents).
+   rules in section [DID documents](#did-documents).
 1. This DID document metadata property MUST be present if the DID
    parameter `versionId` (see section [Support for `versionId`](#support-for-versionid))
    was used when resolving the `did:webs` DID, and if the value of that DID parameter was not the
@@ -2106,13 +2258,17 @@ section [Also Known As](#also-known-as)), but it has even stronger
 semantics, insofar as the logical equivalence is guaranteed by the DID
 method itself.
 
-1. The `did:webs` `equivalentId` metadata property SHOULD contain a list of
-   the controller AID [[ref: designated aliases]] `did:webs` DIDs that differ
-   in the [[ref: host]] and/or port portion of the [[ref: method-specific identifier]]
-   but share the same AID. Also see section [[ref: AID controlled identifiers]].
-1. `equivalentId` depends on the controller AIDs array of [[ref: designated aliases]]. 
-   A `did:webs` identifier MUST not verify unless it is found in
-   the `equivalentId` metadata that corresponds to the Designated aliases.
+1. A `did:webs` DID MUST NOT successfully resolve unless the resolved DID
+   appears in a valid, unrevoked designated aliases ACDC in the
+   [[ref: KERI event stream]].
+1. The `did:webs` `equivalentId` metadata property SHOULD contain the other
+   [[ref: designated aliases]] that are `did:webs` DIDs sharing the same AID
+   but differing in the [[ref: host]], port, and/or path portion of the
+   [[ref: method-specific identifier]]. Also see section
+   [[ref: AID controlled identifiers]] and
+   [Designated Aliases](#designated-aliases).
+1. The resolved DID itself MUST NOT be required to appear in `equivalentId`;
+   `equivalentId` lists other authorized same-AID `did:webs` DIDs.
 
 > Note that [[ref: AID controlled identifiers]] like `did:web` and
 > `did:keri` identifiers with the same AID are not listed in `equivalentId`
@@ -2128,6 +2284,7 @@ Example:
 {
     "didDocument": {
         "id": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+        "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
         "verificationMethod": [
             {
                 "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
@@ -2141,12 +2298,19 @@ Example:
                 }
             }
         ],
+        "authentication": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
+        "assertionMethod": [
+          "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+        ],
         "service": [],
         "alsoKnownAs": [
             "did:web:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:example.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
             "did:web:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
-            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
+            "did:webs:foo.com:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+            "did:keri:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe"
         ]
     },
     "didResolutionMetadata": {
@@ -2169,69 +2333,89 @@ Example:
 
 This section is normative.
 
-There are many security considerations related to web requests, storing
-information securely, etc. It is useful to address these considerations
-along with the common security threats found on the web.
+The security of `did:webs` separates *discovery* (finding `did.json` and
+`keri.cesr` on the web) from *authenticity* (cryptographically verifying the
+[[ref: KERI event stream]] and deriving the DID document). Authenticity of a
+resolved `did:webs` DID document MUST NOT depend on host honesty. A
+conforming resolver MUST establish authenticity by verifying the KERI event
+stream and applying the rules in [Read (Resolve)](#read-resolve) and
+[DID documents](#did-documents).
 
 ### Common security threats
 
-1. All `did:webs` features MUST reduce the attack surface against common threats:
-    1. Broken Object Level Authorization (BOLA) attacks MUST be eliminated or reduced.
-    1. Denial of service (DoS) attacks MUST be eliminated or reduced.
-    1. Deletion attacks MUST be eliminated or reduced.
-    1. Duplicity detection MUST be available and reliable.
-    1. Eclipse attacks MUST be eliminated or reduced.
-    1. Forgery attacks MUST be eliminated or reduced.
-    1. Impersonation attacks MUST be eliminated or reduced.
-    1. Key Compromise attacks MUST be eliminated or reduced.
-    1. Malleability attacks MUST be eliminated or reduced.
-    1. Replay attacks MUST be eliminated or reduced.
+The following maps common threats to the mechanisms this method uses. MUST
+requirements below are limited to behaviors already required elsewhere in
+this specification; optional KERI infrastructure is expressed with SHOULD.
+
+1. **Forgery, malleability, and impersonation of DID document content.** A
+   resolver MUST accept a DID document only when it is derived from a
+   verified KERI event stream and equals the transformed hosted `did.json`,
+   per [Read (Resolve)](#read-resolve). Hosted JSON alone MUST NOT be trusted.
+1. **Unauthorized host or path aliases.** A resolver MUST NOT treat a
+   `did:webs` or corresponding `did:web` identifier as authorized unless it
+   appears in a valid, unrevoked designated aliases ACDC, per
+   [Designated Aliases](#designated-aliases).
+1. **Key compromise.** Controllers SHOULD use KERI [[ref: pre-rotation]] and
+   key rotation so that compromise of current signing keys does not allow an
+   attacker to permanently seize the AID. See
+   [Key state events](#key-state-events).
+1. **Duplicity and eclipse.** Controllers and resolvers SHOULD use KERI
+   [[ref: witnesses]] and [[ref: watchers]] to detect forked or inconsistently
+   published event streams, per
+   [AID controlled identifiers](#aid-controlled-identifiers).
+1. **Deletion or withholding of history.** A single host MAY omit, delay, or
+   serve stale copies of `did.json` or `keri.cesr`. Controllers MUST continue
+   to publish deactivated artifacts per [Deactivate](#deactivate). Resolvers
+   MAY discover alternate locations via [[ref: designated aliases]],
+   `equivalentId`, or other AID-based discovery; the method does not by
+   itself guarantee availability.
+1. **Replay.** KERI event verification and, where used, [[ref: KRAM]] constrain
+   replay of signed protocol messages. Resolvers MUST apply KERI verification
+   rules to the event stream; additional replay protections for discovery
+   traffic SHOULD follow the KEL / BADA-RUN / KRAM guidance in
+   [Concepts for securing `did:webs` information](#concepts-for-securing-didwebs-information).
+1. **Denial of service and BOLA.** Availability of hosts and authorization
+   bugs in surrounding applications are largely outside the scope of this
+   DID method. Hosting SHOULD follow accepted operational practice. The
+   method's authenticity guarantees remain those of KERI verification even
+   when a host is unavailable or untrustworthy.
 
 ### Using HTTPS
 
-Perfect protection from eavesdropping is not possible with HTTPS, for
-various reasons.
+HTTPS protects the confidentiality and integrity of the *transport* used to
+fetch `did.json` and `keri.cesr`. It does not, by itself, establish the
+authenticity of a `did:webs` DID document. Perfect protection from
+eavesdropping is not always possible with HTTPS.
 
 1. URLs of DID documents and [[ref: KERI event streams]] SHOULD be hosted
-   in a way that embodies accepted cybersecurity best practice. This is not
-   strictly necessary to guarantee the authenticity of the data. However,
-   the usage:
-    1. MUST safeguard privacy
-    1. MUST discourage denial of service
-    1. MUST work in concert with defense-in-depth mindset
-    1. MUST aid regulatory compliance
-    1. MUST allow for high-confidence fetches of the DID document and a KERI
-       event stream
+   according to accepted cybersecurity practice for public HTTPS resources
+   (for example, rate limiting and monitoring appropriate to the deployment).
 1. A [[ref: host]] that uses a fully qualified domain name of the
    [[ref: method-specific identifier]] MUST be secured by a TLS/SSL
    certificate.
-    1. The fully qualified domain name MUST match the common name used in the
-       SSL/TLS certificate.
-    1. The common name in the SSL/TLS certificate from the server MUST
-       correspond to the way the server is referenced in the URL. This means
-       that if the URL includes `www.example.com`, the common name in the
-       SSL/TLS certificate must be `www.example.com` as well.
+    1. The fully qualified domain name MUST match the common name (or an
+       appropriate subject alternative name) used in the SSL/TLS certificate.
+    1. The name in the SSL/TLS certificate from the server MUST correspond to
+       the way the server is referenced in the URL. For example, if the URL
+       includes `www.example.com`, the certificate MUST cover
+       `www.example.com` as well.
 1. Unlike `did:web`, the URL MAY use an IP address instead.
-    1. If it does, then the common name in the certificate MUST be the IP
-       address as well.
-1. Essentially, the URL and the certificate MUST NOT identify the server in
-   contradictory ways; subject to that constraint, how the server is
-   identified is flexible.
+    1. If it does, then the certificate MUST identify that IP address (for
+       example via common name or subject alternative name).
+1. The URL and the certificate MUST NOT identify the server in contradictory
+   ways; subject to that constraint, how the server is identified is flexible.
     1. The server certificate MAY be self-issued
-    1. OR it MAY chain back to an unknown certificate authority. However, to
-       ensure reasonable security hygiene, it MUST be valid. This has two
-       meanings, both of which are required:
-1. The certificate MUST satisfy whatever requirements are active in the
-   client, such that the client does accept the certificate and use it to
-   build and communicate over the encrypted HTTPS session where a DID
-   document and KERI event stream are fetched.
-1. The certificate MUST pass some common-sense validity tests, even if the
-   client is very permissive:
-    1. It MUST have a valid signature
-    1. It MUST NOT be expired or revoked or deny-listed
-    1. It MUST NOT have any broken links in its chain of trust.
-1. If a URL of a DID document or KERI event streams results in a redirect,
-   each URL MUST satisfy the same security requirements.
+    1. OR it MAY chain back to an unknown certificate authority. However, it
+       MUST be valid for the client to accept it for the HTTPS session:
+        1. The certificate MUST satisfy the client's active trust
+           requirements such that the client accepts it and uses it to
+           establish the encrypted session.
+        1. Even if the client is permissive about certificate authorities, the
+           certificate MUST have a valid signature, MUST NOT be expired,
+           revoked, or deny-listed, and MUST NOT have broken links in its
+           chain of trust.
+1. If a URL of a DID document or KERI event stream results in a redirect,
+   each URL in the redirect chain MUST satisfy the same security requirements.
 
 ### International Domain Names
 
@@ -2266,7 +2450,7 @@ signatures and other information in `did:webs`.
             1. MAY be anchored indirectly through a [[ref: TEL]] that itself
                is anchored to a KEL.
     1. All data that does not need to incur the cost of [[ref: KEL]] backing
-       for secuirty but can benefit from the latest data-state such as a
+       for security but can benefit from the latest data-state such as a
        distributed data-base MUST use _Best Available Data - Read, Update,
        Nullify_ ([[ref: BADA-RUN]]).
         1. BADA-RUN information MUST be ordered in a consistent way, using the following:
@@ -2288,7 +2472,7 @@ signatures and other information in `did:webs`.
 
 ::: informative Reducing the attack surface
 
-The above considerations have lead us to focus on KEL backed DID document
+The above considerations have led us to focus on KEL backed DID document
 blocks and data (designated alias ACDCs, signatures, etc) so that the trusted
 (local) did:webs resolver is secure. Any future features that could
 leverage BADA-RUN and [[ref: KRAM]] should be considered carefully according
@@ -2310,7 +2494,7 @@ This section addresses the privacy considerations from
 [RFC6973](https://datatracker.ietf.org/doc/html/rfc6973) section 5.
 For privacy considerations related to web infrastructure, see
 [`did:web` privacy considerations](https://w3c-ccg.github.io/did-method-web/#security-and-privacy-considerations).
-Below we discuss privacy considerations related the KERI infrastructure.
+Below we discuss privacy considerations related to the KERI infrastructure.
 
 ### Surveillance
 
@@ -2332,7 +2516,7 @@ sign the Key State.
 
 ### Unsolicited Traffic
 
-DID Documents are not required to provide endpoints and thus not subject to
+DID documents are not required to provide endpoints and thus not subject to
 unsolicited traffic.
 
 ### Misattribution
@@ -2342,29 +2526,19 @@ non-repudiable controller of a DID has been inconsistent and can no longer
 be trusted.  This establishment of non-repudiation enables consistent
 attribution.
 
-### Correlation
+### Correlation and Identification
 
-The root of trust for KERI identifiers is entropy and therefore offers no
-direct means of correlation.  In addition, KERI provides two modes of
-communication, [[ref: direct mode]] and [[ref: indirect mode]]. [[ref: direct mode]]
-allows for
-pairwise (n-wise as well) relationships that can be used to establish
-private relationships.
-
-See the KERI specification for
-[more information about direct and indirect modes](https://trustoverip.github.io/kswg-keri-specification/#introduction).
-
-### Identification
-
-The root of trust for KERI identifiers is entropy and therefore offers no
-direct means of identification.  In addition, KERI provides two modes of
-communication, [[ref: direct mode]] and [[ref: indirect mode]]. [[ref: direct mode]]
-allows for
-pairwise (n-wise as well) relationships that can be used to establish
-private relationships.
+The root of trust for KERI identifiers is entropy. A `did:webs` AID therefore
+offers no inherent correlatable or identifying attributes beyond the AID
+string itself and whatever the controller chooses to publish. In addition,
+KERI provides [[ref: direct mode]] and [[ref: indirect mode]] communication;
+[[ref: direct mode]] supports pairwise (and n-wise) relationships that can
+limit correlation across contexts.
 
 See the KERI specification for
-[more information about secure bindings and prefix derivation](https://trustoverip.github.io/kswg-keri-specification/#keris-secure-bindings)
+[direct and indirect modes](https://trustoverip.github.io/kswg-keri-specification/#introduction)
+and
+[secure bindings and prefix derivation](https://trustoverip.github.io/kswg-keri-specification/#keris-secure-bindings).
 
 ### Secondary Use
 
@@ -2380,10 +2554,10 @@ method.
 
 ### Exclusion
 
-This DID method provides no opportunity for [correlation](#correlation),
-[identification](#identification) or [disclosure](#disclosure) and therefore
-there is no opportunity to exclude the controller from knowing about data
-that others have about them.
+This DID method provides no opportunity for
+[correlation and identification](#correlation-and-identification) or
+[disclosure](#disclosure) and therefore there is no opportunity to exclude
+the controller from knowing about data that others have about them.
 
 ::: 
 
@@ -2407,13 +2581,11 @@ These sections are informative.
 ### Key Agreement
 
 ::: informative Key Agreement
-Key Agreement
-
 There are multiple ways to establish key agreement in KERI. We detail common
 considerations and techniques:
 
 * If the 'k' field references a Ed25519 key, then key agreement may be
-   established using the corresponding x25519 key for Diffie-Helman key
+   established using the corresponding x25519 key for Diffie-Hellman key
    exchange.
 * If the key is an ECDSA or other NIST algorithms key then it will be the
    same key for signatures and encryption and can be used for key agreement.
@@ -2436,8 +2608,6 @@ considerations and techniques:
 ### Other Key Commitments
 
 ::: informative Other Key Commitments
-Key Commitments
-
 This section is informative: Data structures similar to Location Scheme and
 Endpoint Authorizations and managed in KERI using [[ref: BADA-RUN]] may be
 created and used for declaring other types of keys, for example encryption
@@ -2450,8 +2620,6 @@ transformation in the spec.
 ### On-Disk Storage
 
 ::: informative On-Disk Storage
-On-Disk Storage
-
 This section is informative: Both [[ref: KEL backed data]] and [[ref: BADA-RUN]]
 security approaches are suitable for storing information on disk because both
 provide a link between the keystate and date-time on some data when a
@@ -2474,7 +2642,7 @@ attack is possible.
 it's just a bare signature (the datetime is not of the querier but of the
 host at the time of a query). However, the reply to a query can be stored on
 disk if the querier applies BADA to the reply. To elaborate, Data obtained
-via a KRAMed query-reply may be protected on-disk by being using BADA on the
+via a KRAMed query-reply may be protected on-disk by using BADA on the
 reply. This is how KERI stores service endpoints. However, KERI currently
 only uses BADA for discovery data not more important data. More important
 data should be wrapped (containerized) in an [[ref: ACDC]] that is
@@ -2505,8 +2673,6 @@ accepted.
 ### Alignment of Information to Security Posture
 
 ::: informative Alignment of Information to Security Posture
-Alignment of Information to Security Posture
-
 This section is informative: As a general security principle each block of
 information should have the same security posture for all the sub-blocks.
 One should not attempt to secure a block of information that mixes security
@@ -2539,10 +2705,8 @@ This is a root cause of the most prevalent type of attack called a BOLA.
 
 ### Applying the concepts of KEL, BADA-RUN, and KRAM to `did:webs`
 
-::: informative Applying the concepts of KEL
-Applying the concepts of KEL, BADA-RUN, and KRAM to `did:webs`
-
-This section is informative. Lets explore the implications of applying these
+::: informative Applying the concepts of KEL, BADA-RUN, and KRAM to `did:webs`
+This section is informative. Let's explore the implications of applying these
 concepts to various `did:webs` elements.
 Using [[ref: KEL]] backed elements in a DID doc simplifies the security
 concerns. However, future discovery features related to endpoints might
@@ -2589,7 +2753,7 @@ server by including an index (label: said) of the [[ref: SAIDs]] of the
 ### The set of KERI features needed
 
 ::: informative The set of KERI features needed
-Generally the full featureset of KERI, ACDC, and CESR are needed for `did:webs` 
+Generally the full feature set of KERI, ACDC, and CESR are needed for `did:webs` 
 though specific use cases may depend on a smaller subset of KERI and ACDC.
 
 [[ref: KERI]] means [[ref: key event receipt infrastructure]].
@@ -2631,8 +2795,6 @@ helpful as a visual guide to the features and dependencies of `did:webs`.
 ### Stable identifiers on an unstable web
 
 ::: informative Stable identifiers on an unstable web
-Stable identifiers on an unstable web
-
 This section is informative: The web is not a very stable place, and
 documents are moved around and copied frequently. When two or more companies
 merge, often the web presence of some of the merged entities "disappears".
@@ -2677,8 +2839,6 @@ beyond the scope of this specification.
 ### KERI event stream chain of custody
 
 ::: informative KERI event stream chain of custody
-KERI event stream chain of custody
-
 The KERI event stream represents a cryptographic chain of trust originating
 from the [[ref: AID]] of the controller to the current operational set of
 keys (signing and otherwise) as well as the cryptographic commitments to the
@@ -2688,11 +2848,11 @@ metadata for the DID document such as, the supported [[ref: hosts]], the
 current set of service endpoints, etc. A did:webs resolver produces the
 DID document by processing the [[ref: KERI event stream]] to determine the
 current key state. We detail the different events in "Basic KERI event
-details" and show how they change the DID Document. The mapping from the
-KERI event stream to the DID Document properties compose the core of the
+details" and show how they change the DID document. The mapping from the
+KERI event stream to the DID document properties compose the core of the
 did:webs resolver logic.  Understanding the optimal way to update and
-maintain the KERI event stream (publish static keri.cesr files, dynamically
-generate the keri.cesr resource, etc) is beyond the scope of the spec,
+maintain the KERI event stream (publish static `keri.cesr` files, dynamically
+generate the `keri.cesr` resource, etc) is beyond the scope of the spec,
 but the [did:webs Reference Implementation](#DIDWEBS-REF-IMPL) of the resolver
 demonstrate some of these techniques. The important concept is that the
 entire KERI event stream is used to produce and verify the DID document.
@@ -2753,7 +2913,7 @@ allows for changes in key state while not invalidating it.  We will:
    want to designate.
 * The TEL must chain to the attestation itself.
 This is what forms the end-to-end verifiability from the attestation to the
-AID itself. Here is the [[ref: KERI Event Stream]] of each part:
+AID itself. Here is the [[ref: KERI event stream]] of each part:
 :::
 
 #### The interaction event on the KEL
@@ -2825,10 +2985,10 @@ attestation `d` field.
 
 :::
 
-#### The full KERI Event Stream
+#### The full KERI event stream
 
 ::: informative
-This snippet demonstrates how these events occur in the full keri.cesr file.
+This snippet demonstrates how these events occur in the full `keri.cesr` file.
 Notice the CESR encoded verifiable signatures that are interleaved between
 events.
 
@@ -2954,7 +3114,7 @@ events.
       },
       {
         "id":"#BuyRFMideczFZoapylLIyCjSdhtqVb31wZkRKvPfNqkw",
-        "type": "KERIAgent", 
+        "type": "agent", 
         "serviceEndpoint": {
           "tcp": "tcp://bar.example.com:5542",
           "https": "https://bar.example.com" 
@@ -3028,17 +3188,17 @@ multiple ecosystems throughout its lifecycle.
 
 The value of an [[ref: AID]] is derived from the first [[ref: key event]],
 called the [[ref: inception event]], of a [[ref: KEL]]. The inception event
-includes inital public key(s), called the _current_ key(s), that can be used
+includes initial public key(s), called the _current_ key(s), that can be used
 to control the AID. The cryptographic relationship between the AID and its
 keys eliminates an early chain-of-custody risk that plagues many other DID
 methods where an attacker uses compromised keys to create a DID without the
 DID controller's knowledge. This derivation process is similar to techniques
 used by `did:key`, `did:peer`, `did:sov`, and `did:v1`.
 
-The simplest AIDs, called non-transferrable [[ref: direct mode]] AIDs, have
+The simplest AIDs, called non-transferable [[ref: direct mode]] AIDs, have
 no additional input to the derivation function, and expose a degenerate KEL
 that can hold only the inception event. This KEL is entirely derivable from
-the AID itself, and thus requires no external data. Non-transferrable direct
+the AID itself, and thus requires no external data. Non-transferable direct
 mode AIDs are ideal for ephemeral use cases and are excellent analogs to
 `did:key` and `did:peer` with `numalgo=0`. This is by no means not the only
 option as KERI offers richer choices that are especially valuable if an AID
@@ -3051,12 +3211,12 @@ Public keys in the [Verification Methods](#verification-methods) of a
 With pre-rotation, the inception event of the associated AID also includes
 the hash(s) of the _next_ key(s) that can be used to change the
 [[ref: key state]] of the AID. AIDs with one or more pre-rotated _next_ keys
-are called _transferrable_ AIDs because their control can be transferred to
+are called _transferable_ AIDs because their control can be transferred to
 new keys. AIDs that do not use pre-rotation cannot change their keys and are
-thus _non-transferrable_.
+thus _non-transferable_.
 
 Pre-rotation has profound security benefits. If a malicious party steals the
-_current_ private key for a transferrable AID, they only accomplish
+_current_ private key for a transferable AID, they only accomplish
 _temporary_ mischief, because the already-existing KEL contains a commitment
 to a future state. This prevents them from rotating the stolen AID's key to
 an arbitrary value of their choosing. As soon as the AID controller suspects
@@ -3180,6 +3340,8 @@ and python.
 <a id="RFC1123"></a>. IETF, [RFC 1123: Requirements for Internet Hosts - Application and Support](https://datatracker.ietf.org/doc/html/rfc1123).
 
 <a id="RFC2181"></a>. IETF, [RFC 2181: Clarifications to the DNS Specification](https://www.rfc-editor.org/info/rfc2181).
+
+<a id="RFC3986"></a>. IETF, [RFC 3986: Uniform Resource Identifier (URI): Generic Syntax](https://www.rfc-editor.org/info/rfc3986).
 
 #### Trust-over-IP
 
