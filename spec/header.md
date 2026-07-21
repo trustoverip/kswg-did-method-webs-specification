@@ -20,7 +20,7 @@ we encourage additional did:webs implementations to the original
 - [Daniel Hardman](https://www.linkedin.com/in/danielhardman/), [Provenant, Inc](https://provenant.net)
 - [Sam Smith](https://github.com/SmithSamuelM), [Prosapien](https://prosapien.com/)
 - [Lance Byrd](https://github.com/2byrds), [GLEIF](https://gleif.org) and [RootsID](https://rootsid.com/)
-- [Jonathan Rayback](https:/github.com/jrayback), [Future Forge Innovation LLC](https://futureforg.ing)
+- [Jonathan Rayback](https://github.com/jrayback), [Future Forge Innovation LLC](https://futureforg.ing)
 - [Kent Bull](https://github.com/kentbull), [Kent Bull](https://kentbull.com)
 
 **Contributors:**
@@ -31,7 +31,7 @@ we encourage additional did:webs implementations to the original
 - [Charles Lanahan](https://www.linkedin.com/in/charles-lanahan-a8a68b16/)
 - [Nuttawut Kongsuwan](https://github.com/nkongsuwan), [Finema](https://finema.co/)
 - [Darrell O'Donnell](https://github.com/darrellodonnell), [Continuum Loop Inc.](https://www.continuumloop.com)
-- [Henk van Cann](https:/github.com/henkvancann), [Blockchainbird](https://blockchainbird.org)
+- [Henk van Cann](https://github.com/henkvancann), [Blockchainbird](https://blockchainbird.org)
 <!-- -->
 
 **Participate:**
@@ -138,7 +138,7 @@ control the identifier including any of its delegators.
 The `did:webs` method does not need blockchains to establish trust.
 However, its use of KERI allows for arbitrary blockchains to be
 referenced as an extra, optional publication mechanism. This offers a
-potentital interoperability bridge from (or between) blockchain
+potential interoperability bridge from (or between) blockchain
 ecosystems. Also, without directly supporting environments where the
 web is not practical (e.g., IOT, Lo-Ra, Bluetooth, NFC), the method builds on a
 foundation that can fully support those environments, making future interop of
