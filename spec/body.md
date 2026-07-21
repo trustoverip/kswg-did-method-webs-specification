@@ -769,18 +769,24 @@ would result in a DID document with the following verification methods array:
    codes) and generating the corresponding representation of the key in
    JSON Web Key form.
 
+::: informative illustrative secp256r1 encoding
+The following example shows the encoding shape for a Secp256r1 key. The AID
+and key material are illustrative of structure only and are not a verified
+live inception event.
+:::
+
 For example, a KERI AID with only the following inception event in its KEL:
 
 ```json
 {
   "v": "KERI10JSON0001ad_",
   "t": "icp",
-  "d": "EDP1vHcw_wc4M__Fj53-cJaBnZZASd-aMTaSyWEQ-PC2",
-  "i": "EDP1vHcw_wc4M__Fj53-cJaBnZZASd-aMTaSyWEQ-PC2",
+  "d": "EHs9k2mQpL7vNxR4wYtUcA1bZdF3gJhK8mNoPqRsTuVw",
+  "i": "EHs9k2mQpL7vNxR4wYtUcA1bZdF3gJhK8mNoPqRsTuVw",
   "s": "0",
   "kt": "1",
   "k": [
-    "1AAIAmbFVu-Wf8NCd63B9V0zsy7EgB_ocX2_n_Nh1FCmgF0Y",
+    "1AAIKs8mNpQ2vWxYzAbCdEfGhIjKlMnOpQrStUvWxYz01234"
   ]
   // ...
 }
@@ -791,15 +797,15 @@ would result in a DID document with the following verification methods array:
 ```json
   "verificationMethod": [
     {
-      "id": "#1AAIAmbFVu-Wf8NCd63B9V0zsy7EgB_ocX2_n_Nh1FCmgF0Y",
+      "id": "#1AAIKs8mNpQ2vWxYzAbCdEfGhIjKlMnOpQrStUvWxYz01234",
       "type": "JsonWebKey",
-      "controller": "did:webs:example.com:EDP1vHcw_wc4M__Fj53-cJaBnZZASd-aMTaSyWEQ-PC2",
+      "controller": "did:webs:example.com:EHs9k2mQpL7vNxR4wYtUcA1bZdF3gJhK8mNoPqRsTuVw",
       "publicKeyJwk": {
-        "kid": "1AAIAmbFVu-Wf8NCd63B9V0zsy7EgB_ocX2_n_Nh1FCmgF0Y",
+        "kid": "1AAIKs8mNpQ2vWxYzAbCdEfGhIjKlMnOpQrStUvWxYz01234",
         "kty": "EC",
         "crv": "secp256r1",
-        "x": "ZsVW75Z_w0J3rcH1XTOzLsSAH-hxfb-Q82HUUKaAXRg",
-        "y": "Lu6Uw785U3K05D-NPNoUInHPNUz9cGqWwjKjm5KL8FI"
+        "x": "xYz9AbCdEfGhIjKlMnOpQrStUvWx0123456789abcde",
+        "y": "yZ0BcDeFgHiJkLmNoPqRsTuVwXyZaBcDeFgHiJkLmNo"
       }
     }
   ]
@@ -813,7 +819,6 @@ would result in a DID document with the following verification methods array:
    sections, another 
    [verification method](https://w3c-ccg.github.io/verifiable-conditions/)
    with a type of `ConditionalProof2022` MUST be generated in the DID document.
-   This verification method type is defined.
     1. It MUST be constructed according to the following rules:
         1. The `id` property of the verification method MUST be a relative
            DID URL and use the AID as the value of the fragment component,
@@ -1628,15 +1633,10 @@ document.
    [Verification Relationships](#verification-relationships).
 
 ::: informative KERI event references
-You can learn more about the inception event in the [KERI
-specification](#KSWG-KERI) and you can see an example inception event. To learn about
-future rotation key commitment, see the sections about
-[pre-rotation](#pre-rotation) and the [KERI specification](#KSWG-KERI).
-
-You can learn more about rotation events in the [KERI specification](#KSWG-KERI) and you
-can see an example rotation event. To learn about future rotation key
-commitment, see the sections about [pre-rotation](#pre-rotation) and the
-[KERI specification](#KSWG-KERI).
+For inception events, rotation events, and pre-rotation (future rotation key
+commitment), see the [KERI specification](#KSWG-KERI) and
+[Pre-rotation](#pre-rotation) in this document. Worked examples of inception
+and interaction events appear in [Full Example](#full-example).
 :::
 
 ### Delegation KERI event details
@@ -2450,7 +2450,7 @@ This section addresses the privacy considerations from
 [RFC6973](https://datatracker.ietf.org/doc/html/rfc6973) section 5.
 For privacy considerations related to web infrastructure, see
 [`did:web` privacy considerations](https://w3c-ccg.github.io/did-method-web/#security-and-privacy-considerations).
-Below we discuss privacy considerations related the KERI infrastructure.
+Below we discuss privacy considerations related to the KERI infrastructure.
 
 ### Surveillance
 
@@ -2482,29 +2482,19 @@ non-repudiable controller of a DID has been inconsistent and can no longer
 be trusted.  This establishment of non-repudiation enables consistent
 attribution.
 
-### Correlation
+### Correlation and Identification
 
-The root of trust for KERI identifiers is entropy and therefore offers no
-direct means of correlation.  In addition, KERI provides two modes of
-communication, [[ref: direct mode]] and [[ref: indirect mode]]. [[ref: direct mode]]
-allows for
-pairwise (n-wise as well) relationships that can be used to establish
-private relationships.
-
-See the KERI specification for
-[more information about direct and indirect modes](https://trustoverip.github.io/kswg-keri-specification/#introduction).
-
-### Identification
-
-The root of trust for KERI identifiers is entropy and therefore offers no
-direct means of identification.  In addition, KERI provides two modes of
-communication, [[ref: direct mode]] and [[ref: indirect mode]]. [[ref: direct mode]]
-allows for
-pairwise (n-wise as well) relationships that can be used to establish
-private relationships.
+The root of trust for KERI identifiers is entropy. A `did:webs` AID therefore
+offers no inherent correlatable or identifying attributes beyond the AID
+string itself and whatever the controller chooses to publish. In addition,
+KERI provides [[ref: direct mode]] and [[ref: indirect mode]] communication;
+[[ref: direct mode]] supports pairwise (and n-wise) relationships that can
+limit correlation across contexts.
 
 See the KERI specification for
-[more information about secure bindings and prefix derivation](https://trustoverip.github.io/kswg-keri-specification/#keris-secure-bindings)
+[direct and indirect modes](https://trustoverip.github.io/kswg-keri-specification/#introduction)
+and
+[secure bindings and prefix derivation](https://trustoverip.github.io/kswg-keri-specification/#keris-secure-bindings).
 
 ### Secondary Use
 
@@ -2520,10 +2510,10 @@ method.
 
 ### Exclusion
 
-This DID method provides no opportunity for [correlation](#correlation),
-[identification](#identification) or [disclosure](#disclosure) and therefore
-there is no opportunity to exclude the controller from knowing about data
-that others have about them.
+This DID method provides no opportunity for
+[correlation and identification](#correlation-and-identification) or
+[disclosure](#disclosure) and therefore there is no opportunity to exclude
+the controller from knowing about data that others have about them.
 
 ::: 
 
