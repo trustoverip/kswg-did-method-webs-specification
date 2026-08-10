@@ -1,12 +1,12 @@
 {
   "name": "did-webs-spec",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "private": true,
   "license": "Apache-2.0",
   "description": "ToIP KSWG did:webs specification written in Markdown and converted to HTML using the Spec-Up-T tool.",
   "author": "Phil Feairheller <phil@healthkeri.com> (https://healthkeri.com)",
   "contributors": [
-    "Charles Lanahan <c charles.lanahan@gmail.com>",
+    "Charles Lanahan <charles.lanahan@gmail.com>",
     "Darrell O'Donnell <darrell@continuumloop.com> (https://continuumloop.com)",
     "Daniel Hardman <daniel@provenant.net> (https://provenant.net)",
     "Henk van Cann <henk@blockchainbird.org> (https://blockchainbird.org)",
