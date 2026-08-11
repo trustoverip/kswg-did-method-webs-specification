@@ -1687,12 +1687,15 @@ DID document.
    rotation event.
 
 ::: informative Delegation event summaries
-Delegated [[ref: inception event]]: Establishes a delegated identifier.
-Either the delegator or the delegate can end the delegation commitment.
+Delegated [[ref: inception event]]: Establishes a delegated identifier and
+identifies its delegator. Acceptance of the event requires verification of the
+corresponding anchoring seal in the delegator's KEL.
 
 Delegated [[ref: rotation event]]: Updates the delegated identifier
-commitment. Either the delegator or the delegate can end the delegation
-commitment.
+key state. Acceptance of the event requires verification of the corresponding
+anchoring seal in the delegator's KEL. A delegated rotation with an empty Next
+(`n`) field rotates to a null set of pre-rotated keys, thereby abandoning the
+delegated identifier; no further key events are allowed in its KEL.
 
 See the [KERI specification](#KSWG-KERI) for an example of a delegated inception
 and rotation events.
@@ -1712,6 +1715,21 @@ In did:webs, KERI-derived service endpoints are defined by **Location Scheme**
 given scheme for an AID; Endpoint Role Authorization relates a role (e.g.
 mailbox, agent) of one AID to another. See
 [KERI Service Endpoints as DID document metadata](#keri-service-endpoints-as-did-document-metadata).
+
+::: informative Accepted KERI and BADA service state
+For resolution of the current DID state, a `did:webs` resolver projects
+services only from accepted current KERI key state and the latest reply state
+accepted under KERI BADA rules. The effective KEL witness list supplies witness
+authorization. Current Endpoint Role Authorization state supplies mailbox and
+agent authorization, and current Location Scheme state supplies endpoint URLs.
+Superseded, cut, nullified, escrowed, or otherwise unaccepted state is not
+projected.
+
+When `versionId` selects historical state, the selected KEL version supplies
+KEL-derived authorization, while endpoint discovery continues to use the latest
+reply state accepted under KERI BADA rules at resolution time, as described in
+[Support for `versionId`](#support-for-versionid).
+:::
 
 When the event stream (or equivalent key state and endpoint data) for a
 `did:webs` DID establishes a witness, mailbox, or agent the DID document
@@ -1845,8 +1863,11 @@ endpoint in its DID document as follows.
     1. The service `serviceEndpoint` property MUST be a valid
        [[ref: out-of-band introduction]] ([[ref: OOBI]]) URL that resolves to
        the delegator's AID.
-1. The delegator service endpoint enables [[ref: verifiers]] to discover and validate
-   the delegation relationship by retrieving the delegator's [[ref: KEL]].
+1. The delegator service endpoint only indicates where the delegator's KERI
+   state may be retrieved. Its presence MUST NOT be treated as proof or
+   validation of the delegation relationship. A KERI-aware verifier validates
+   the relationship independently by retrieving the delegator's [[ref: KEL]]
+   and verifying the source seal that authorizes the delegated event.
 
 For example, a `did:webs` DID that is a delegated AID MUST include, in its
 `service` array of the DID document, a delegator service endpoint similar
@@ -1863,11 +1884,14 @@ to the following:
 ```
 
 ::: informative Delegator endpoint example explanation
-In this example, the `id` field contains the [[ref: SAID]] of the seal in the
-delegator's [[ref: KEL]] that anchors the delegation commitment, and the
-`serviceEndpoint` provides the [[ref: OOBI]] URL to retrieve the delegator's
-key state so that the delegator's KEL may be searched for the delegation
-seal referred to by the `id` property.
+In this example, the `id` field contains the bare [[ref: SAID]] of the seal in
+the delegator's [[ref: KEL]] that anchors the delegation commitment. This is an
+opaque, KERI-specific correlation value, not a DID-resolution target; generic
+DID clients are not required to interpret or dereference it. A KERI-aware
+verifier can use the `serviceEndpoint` OOBI URL to retrieve the delegator's key
+state and use the seal SAID to locate the source seal in the authorizing event,
+such as an interaction event, in the delegator's KEL. Neither the bare SAID, the
+OOBI URL, nor the presence of the service entry proves delegation.
 :::
 
 #### Agent Service Endpoint
@@ -2069,6 +2093,22 @@ design, see section [KERI Fundamentals](#keri-fundamentals).
    associated KERI events from the KERI event stream only up to
    (and including) the event with the sequence number (i.e. the `s` field)
    that corresponds to the value of the `versionId` DID parameter.
+
+::: informative Scope of historical resolution
+The version selected by `versionId` applies to the AID's KEL and to TEL and
+ACDC data whose anchoring KEL events are included at or before the selected
+version. It does not select historical KERI reply (`rpy`) messages used for
+endpoint discovery.
+
+Any endpoint-discovery `rpy` messages returned during resolution are the latest
+messages accepted under KERI BADA rules at resolution time. Location Scheme and
+Endpoint Role Authorization state is projected from that current reply state.
+Consequently, services in a historical DID document represent current discovery
+information, not endpoint state as it existed at the requested KEL version.
+Historical `rpy` discovery state is not supported or normatively required by
+this specification, and changes only to that state do not create a `versionId`
+or `nextVersionId`.
+:::
 
 ::: informative versionId example
 See section [DID documents](#did-documents) for details.
