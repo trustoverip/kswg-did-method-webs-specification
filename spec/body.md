@@ -1497,8 +1497,16 @@ schemas MAY be defined by this specification or by extensions to it.
 1. A resolver MUST NOT derive DID document content from a designation whose
    schema it does not implement, and MUST NOT accept, from the published
    document, content that only such a designation could establish.
-1. When the derived and published documents are equal, a designation the
-   resolver does not implement does not cause resolution to fail.
+1. A designation schema whose content restricts what the key state alone
+   would put in the DID document (for example, by removing keys from a
+   verification relationship) MUST be defined as *critical*. A resolver that
+   finds, in the [[ref: KERI event stream]] (as limited by any `versionId`), a
+   designation of a critical schema it does not implement MUST fail
+   resolution with the error `unsupportedDesignation`, whether or not the
+   derived and published documents are equal.
+1. Otherwise, when the derived and published documents are equal, a
+   designation the resolver does not implement does not cause resolution to
+   fail.
 
 ::: informative Why an unknown designation fails resolution rather than being ignored
 A designation can restrict what a DID document says as well as add to it. A
@@ -1512,10 +1520,15 @@ verify. So a resolver that meets a difference it cannot explain fails, and
 named schema can resolve the DID, where a generic mismatch would suggest that
 the DID's resources were tampered with.
 
-When a controller publishes a document that does not reflect one of its own
-designations, resolvers that implement the schema will find a difference and
-fail; resolvers that do not will find none. Either way, no resolver returns
-content the [[ref: KERI event stream]] does not establish.
+Comparison alone does not protect a restriction. Anyone able to write the
+published `did.json` (a compromised web host, for instance) can replace it
+with the document the key state alone derives. A resolver that does not
+implement the restricting designation would find that document equal to its
+own derivation and accept it, restoring the authority the controller withdrew.
+This is why a restricting schema is critical: a resolver that cannot apply it
+fails, whatever was published. A designation that only adds content (an
+alias, a key agreement key, a service) need not be critical, because ignoring
+it leaves a resolver with less than the controller published, not more.
 :::
 
 ### Full Example
