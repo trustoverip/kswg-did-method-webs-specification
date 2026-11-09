@@ -258,12 +258,14 @@ The four DID Method Operations, create, read, update, and deactivate conceptuall
     - includes:
       - KERI events (KEL) for the `did:webs` DID and any delegators
       - ACDC TEL events, issuance and revocation, for designated alias ACDCs
-      - ACDCs for designated aliases
+        and key agreement designation ACDCs
+      - ACDCs for designated aliases and key agreement designations
       - KERI Reply messages (Location Scheme, Endpoint Role Authorization)
 - Update: involves changing values in the DID document. These might include:
   - **key change**: a KERI key rotation event changes the verification methods in a `did:webs` DID document.
   - **alsoKnownAs** or **equivalentId** change: revoking and/or issuing designated aliases ACDCs that update `alsoKnownAs` and `equivalentId`.
   - **service endpoint** change: [[ref: witness]] rotation, Location Scheme, or Endpoint Role Authorization updates that change the `service` array.
+  - **key agreement** change: revoking and/or issuing key agreement designation ACDCs that update `keyAgreement`.
 - Deactivate: rotating the underlying KERI identifier to null, or no next keys.
 :::
 
@@ -409,6 +411,17 @@ are statically hosted, they MUST be overwritten at the published location.
 1. After the KERI event stream reflects the updated endpoints, the controller
    MUST regenerate the DID document and republish `did.json` and `keri.cesr`.
 
+##### Key agreement update
+
+1. Updates that add, remove, or replace key agreement keys MUST be performed
+   by revoking and/or issuing key agreement designation ACDCs anchored to the
+   [[ref: KERI event stream]], according to section
+   [Key Agreement Keys](#key-agreement-keys). They do not require a key
+   rotation.
+1. After the KERI event stream reflects the updated designations, the
+   controller MUST regenerate the DID document and republish `did.json` and
+   `keri.cesr`.
+
 #### Deactivate
 
 1. To deactivate a `did:webs` DID, a [[ref: controller]] MUST execute a KERI
@@ -435,7 +448,8 @@ This section is normative.
    [[ref: KERI event stream]] of the corresponding AID.
     1. Processing the KERI event stream of the AID, the generation algorithm
        MUST read the AID [[ref: KEL]] and any anchored [[ref: TELs]] to
-       produce the DID document, including any designated alias ACDCs.
+       produce the DID document, including any designated alias ACDCs and
+       key agreement designation ACDCs.
 2. `did:webs` DID documents MUST be pure JSON. They MAY be processed as
    JSON-LD by prepending an `@context` if consumers of the documents wish.
 3. All hashes, cryptographic keys, and signatures MUST be represented as
@@ -1086,14 +1100,192 @@ would result in a DID document with the following verification methods array and
 ]
 ```
 
-::: informative Use of private keys and key agreement
+::: informative Signing keys and key agreement
 Private keys of a KERI AID can be used to sign a variety of data. This
 includes but is not limited to logging into a website, challenge-response
 exchanges, credential issuances, etc.
 
-For more information, see the [key agreement](#key-agreement) and
-[other key commitments](#other-key-commitments) section in the Implementors
+The keys in `k` are signing keys, and they are also the AID's change
+authority: whoever holds enough of them controls the identifier. A `did:webs`
+DID document therefore lists no key of the key state under `keyAgreement`.
+Keys for encrypting to the controller are designated separately, as described
+in [Key Agreement Keys](#key-agreement-keys). See also the
+[key agreement](#key-agreement) and
+[other key commitments](#other-key-commitments) sections in the Implementors
 Guide.
+:::
+
+### Key Agreement Keys
+
+This section is normative.
+
+::: informative Why key agreement keys are designated
+A `did:webs` DID document derived from key state alone has no `keyAgreement`.
+An AID controller that wants others to encrypt to it designates key agreement
+keys with an [[ref: ACDC]] it issues to itself and anchors in its
+[[ref: KEL]], in the same way it authorizes [[ref: designated aliases]]
+(see [verifiable data on a TEL](#verifiable-data-on-a-tel)).
+
+Keeping these keys apart from the key state means that:
+- a key agreement key can be replaced by revoking one designation and issuing
+  another, without a key rotation;
+- compromise of a key agreement key exposes encrypted traffic but does not
+  hand over control of the AID, and compromise of a signing key does not by
+  itself expose past encrypted traffic;
+- every change is anchored in the KEL, so it is witnessed, subject to the same
+  duplicity detection as the KEL, and can be resolved as of a given
+  `versionId`.
+:::
+
+1. An AID controller MAY designate key agreement keys by issuing a key
+   agreement designation. A key agreement designation is an [[ref: ACDC]]
+   that:
+    1. MUST use the schema with SAID
+       `EJZrf6N4vbhA1hQIujWiIiQmNi455EGS3iXdhxLSwvAi` (see
+       [Key agreement designation details](#key-agreement-designation-details)).
+    1. MUST name the AID as its issuer (`i`).
+    1. MUST name, in `ri`, a registry whose inception event (`vcp`) names the
+       AID as its issuer (`ii`) and is anchored in the AID's [[ref: KEL]].
+    1. MUST have an issuance event (`iss`) in that registry, anchored in the
+       AID's [[ref: KEL]].
+    1. MUST be signed by the AID with signatures that satisfy the signing
+       threshold of the key state established by the event the signature
+       group names.
+    1. MUST list in `a.keys` one or more CESR-encoded public keys, each of a
+       type in the key agreement key types table below.
+1. The key agreement designation, the inception of its registry, its issuance
+   event and any revocation event MUST be included in the `keri.cesr` stream.
+1. An AID controller MUST NOT designate a key of its current key state, or a
+   key derived from one, such as the X25519 form of an Ed25519 signing key.
+1. A designation is revoked once a revocation event for it (`rev` or `brv`)
+   is anchored in the AID's [[ref: KEL]]. A revoked designation contributes no
+   keys.
+1. A resolver MUST treat a key agreement designation that fails any rule
+   above as contributing no keys. This includes a designation listing a key
+   with a CESR code not in the table, or an elliptic-curve point that is not
+   on its curve.
+1. When resolving with a `versionId`, a designation contributes keys only if
+   its issuance is anchored at or before that sequence number, and is revoked
+   only if its revocation is anchored at or before it (see
+   [Support for `versionId`](#support-for-versionid)).
+1. The key agreement keys of the DID document are the union, in stream order
+   and without duplicates, of the keys of every valid, unrevoked key agreement
+   designation, excluding any key whose raw public key equals that of a key in
+   the current `k` field. For each key agreement key:
+    1. A verification method MUST be generated with an `id` of `#` followed
+       by the key's CESR encoding, a `type` of `JsonWebKey`, a `controller` of
+       the DID document `id`, and a `publicKeyJwk` whose `kid` is the key's
+       CESR encoding.
+    1. The relative DID URL of that verification method MUST be listed in the
+       `keyAgreement` verification relationship.
+    1. The verification method MUST NOT be listed in `authentication`,
+       `assertionMethod`, or any other verification relationship.
+1. If there are no key agreement keys, the DID document MUST NOT contain a
+   `keyAgreement` property.
+1. A resolver MUST NOT add to the DID document a key converted from a key of
+   the key state, and MUST exclude from the key agreement keys a designated
+   X25519 key equal to the X25519 form of an Ed25519 key in the current `k`
+   field.
+
+Key agreement key types:
+
+| Key type | CESR code | `publicKeyJwk` |
+|---|---|---|
+| X25519 | `C` | `kty` `OKP`, `crv` `X25519` |
+| NIST P-256, SEC1 compressed | `1AAJ` (or `1AAI`) | `kty` `EC`, `crv` `P-256` |
+| secp256k1, SEC1 compressed | `1AAB` (or `1AAA`) | `kty` `EC`, `crv` `secp256k1` |
+
+::: informative Converted keys
+Some KERI deployments encrypt to the X25519 key converted from an AID's
+Ed25519 signing key. Such a key is never part of a `did:webs` DID document,
+and a resolver does not add it. The rules for a party that falls back to it
+are below; the risks are described in the Implementors Guide under
+[key agreement](#key-agreement).
+:::
+
+1. A party MAY encrypt to the X25519 key converted from an Ed25519 key of an
+   AID's current key state only if the AID has never issued a key agreement
+   designation that verifies, whether or not it has since been revoked, and
+   the AID is not deactivated.
+    1. A party MUST NOT apply this fallback to an AID whose stream carries a
+       key agreement designation that fails verification.
+    1. A party MUST NOT use a secp256k1 or P-256 key of the key state for key
+       agreement.
+
+#### Key agreement designation details
+
+::: informative Key agreement designation example
+The schema is a JSON Schema whose attribute block (`a`) has the members `d`
+(the block's SAID), `dt` (the designation date-time) and `keys` (a non-empty
+array of CESR-encoded public keys), and whose rules block (`r`) states that
+the keys are designated for key agreement only and authorize nothing else. The
+schema document is published with the `affinidi-did-webs` implementation
+(`schemas/key-agreement-designation.json`) and is identified by its SAID,
+`EJZrf6N4vbhA1hQIujWiIiQmNi455EGS3iXdhxLSwvAi`.
+
+This designation, issued by the AID of the earlier examples in the registry
+used for its designated aliases, designates one X25519 key. The rules block is
+shown by its SAID:
+
+```json
+{
+  "v": "ACDC10JSON0001b2_",
+  "d": "EBzG8fK02win-5vWjkwd65CPMtk29JElWl42zBq3q3Df",
+  "i": "ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+  "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+  "s": "EJZrf6N4vbhA1hQIujWiIiQmNi455EGS3iXdhxLSwvAi",
+  "a": {
+    "d": "EJIC-83X2GtC6BhPUjnoD2ZE6H4Mgypi2_3mEUPImHba",
+    "dt": "2026-11-09T21:44:36.788115+00:00",
+    "keys": [
+      "CJSsH4bzp2WE_KGC0cOBr1kQOABi-F_Nhwo4zO5I9l5E"
+    ]
+  },
+  "r": "ELh99mMMR2fmXCUPnSr5NmbUaDpqh2Dfct2QSrRZ3fIq"
+}
+```
+
+Once its issuance is anchored in the KEL, the DID document gains a
+verification method and a `keyAgreement` entry for the key. The signing key's
+verification method and relationships are unchanged:
+
+```json
+{
+  "verificationMethod": [
+    {
+      "id": "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
+      "type": "JsonWebKey",
+      "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "publicKeyJwk": {
+        "kid": "DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "evT4j6Yw3uHpwsw5NEmSR8-4x3S-BA-s6Thjd51oeOs"
+      }
+    },
+    {
+      "id": "#CJSsH4bzp2WE_KGC0cOBr1kQOABi-F_Nhwo4zO5I9l5E",
+      "type": "JsonWebKey",
+      "controller": "did:webs:did-webs-service%3a7676:ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+      "publicKeyJwk": {
+        "kid": "CJSsH4bzp2WE_KGC0cOBr1kQOABi-F_Nhwo4zO5I9l5E",
+        "kty": "OKP",
+        "crv": "X25519",
+        "x": "lKwfhvOnZYT8oYLRw4GvWRA4AGL4X82HCjjM7kj2XkQ"
+      }
+    }
+  ],
+  "authentication": [
+    "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+  ],
+  "assertionMethod": [
+    "#DHr0-I-mMN7h6cLMOTRJkkfPuMd0vgQPrOk4Y3edaHjr"
+  ],
+  "keyAgreement": [
+    "#CJSsH4bzp2WE_KGC0cOBr1kQOABi-F_Nhwo4zO5I9l5E"
+  ]
+}
+```
 :::
 
 ### Service Endpoints
@@ -2621,40 +2813,55 @@ These sections are informative.
 ### Key Agreement
 
 ::: informative Key Agreement
-There are multiple ways to establish key agreement in KERI. We detail common
-considerations and techniques:
+The normative mechanism for key agreement is the key agreement designation
+described in [Key Agreement Keys](#key-agreement-keys): separate keys,
+designated by an [[ref: ACDC]] anchored to a [[ref: TEL]] which is anchored to
+the [[ref: KEL]], in the same way as [[ref: designated aliases]]
+(see [verifiable data on a TEL](#verifiable-data-on-a-tel)).
 
-* If the 'k' field references a Ed25519 key, then key agreement may be
-   established using the corresponding x25519 key for Diffie-Hellman key
-   exchange.
-* If the key is an ECDSA or other NIST algorithms key then it will be the
-   same key for signatures and encryption and can be used for key agreement.
-* _BADA-RUN for key agreement:_ Normally in KERI we would use
-   [[ref: BADA-RUN]], similar to how we specify endpoints, [[ref: host]]
-   migration info, etc. This would allow the controller to specify any Key
-   Agreement key, without unnecessarily adding KERI events to their
-   [[ref: KEL]].
-* _Key agreement from `k` field keys:_ It is important to note that KERI is
-   cryptographically agile and can support a variety of keys and signatures.
-* _Key agreement anchored in KEL:_ It is always possible to anchor arbitrary
-   data, like a key agreement key, to the KEL.
-  * The best mechanism is to anchor an [[ref: ACDC]] to a [[ref: TEL]] which
-    is anchored to the KEL. The data would be the basis of the key agreement
-    information. The concept is similar to how we anchor
-    [[ref: designated aliases]] as
-    [verifiable data on a TEL](#verifiable-data-on-a-tel).
+Considerations behind it:
+
+* _Why not the signing keys:_ The keys in `k` are the AID's change authority.
+  Using one of them, or a key converted from one, for key agreement makes the
+  key that controls the identifier an encryption key as well:
+  * compromise of either use is compromise of both: a key extracted from a
+    decryption service can sign rotations, interactions and credentials;
+  * the encryption key cannot change without rotating the AID, and every
+    rotation changes it, so key agreement and key management are coupled;
+  * the same key is used under two algorithms (EdDSA and X25519, or ECDSA and
+    ECDH), a cross-protocol use whose security has to be argued for the pair
+    rather than following from either algorithm alone.
+* _Converted keys as a legacy fallback:_ Some KERI deployments encrypt to the
+  X25519 key converted from an Ed25519 signing key. The conversion is
+  well-defined, but it has every risk above, and the AID never states that the
+  key is meant for encryption. A party may still fall back to it for an AID
+  that has never designated key agreement keys, under the rules in
+  [Key Agreement Keys](#key-agreement-keys). Once an AID has issued a
+  designation, even one since revoked, it has chosen separate keys, and the
+  fallback no longer applies. No such fallback exists for secp256k1 or P-256
+  signing keys.
+* _Why not [[ref: BADA-RUN]]:_ Key agreement keys could be declared in KERI
+  `rpy` messages, as endpoints are, without adding events to the KEL. Anchoring
+  in the KEL is preferred because `rpy` messages are not tied to a KEL
+  version, so a `versionId` cannot select the key agreement keys that held at
+  a given sequence number (see [Support for `versionId`](#support-for-versionid)),
+  and because BADA-RUN keeps only the latest reply, so it leaves no durable
+  record that a key was withdrawn, for example after a compromise.
+* _Cryptographic agility:_ KERI can support a variety of keys and signatures,
+  and a designation can list key types beyond those this specification names
+  once their CESR codes and `publicKeyJwk` representations are defined.
 :::
 
 ### Other Key Commitments
 
 ::: informative Other Key Commitments
-This section is informative: Data structures similar to Location Scheme and
-Endpoint Authorizations and managed in KERI using [[ref: BADA-RUN]] may be
-created and used for declaring other types of keys, for example encryption
-keys, etc
+Encryption keys are designated as described in
+[Key Agreement Keys](#key-agreement-keys). Other kinds of key commitment can
+follow the same pattern: an [[ref: ACDC]] of a schema defined for the purpose,
+issued by the AID to itself and anchored in its [[ref: KEL]].
 
-To support new data structures, propose them in KERI and detail the
-transformation in the spec.
+To support new data structures, propose them and detail the transformation in
+this specification.
 :::
 
 ### On-Disk Storage
