@@ -358,11 +358,15 @@ MUST include an `error` in `didResolutionMetadata` as specified by
    according to
    [Transformation to `did:webs` DID document](#transformation-to-didwebs-did-document).
    If the transformation cannot be applied, resolution MUST fail.
-1. The derived DID document MUST equal the transformed DID document. If they
-   differ, resolution MUST fail.
-1. Return the `did:webs` DID document, together with any DID document
+1. Compare the derived DID document with the transformed DID document
+   according to
+   [Comparing the derived and published DID documents](#comparing-the-derived-and-published-did-documents).
+   If they are not equal under that section, resolution MUST fail, with the
+   error that section requires.
+1. Return the derived `did:webs` DID document, together with any DID document
    metadata required by this specification (for example `versionId` and, when
-   applicable, `equivalentId` and `nextVersionId`).
+   applicable, `equivalentId` and `nextVersionId`). A resolver MUST NOT return
+   the published document in its place.
 
 ::: informative Scope of KERI capabilities
 KERI-aware applications MAY use the KERI event stream for capabilities
@@ -1403,6 +1407,116 @@ reciprocal entry in `alsoKnownAs`.
         ]
     }
     ```
+
+### Comparing the derived and published DID documents
+
+This section is normative.
+
+The [Read (Resolve)](#read-resolve) operation compares two documents: the
+DID document derived from the verified [[ref: KERI event stream]] (the
+*derived document*), and the published `did.json` after
+[Transformation to `did:webs` DID document](#transformation-to-didwebs-did-document)
+(the *published document*). This section defines when they are equal.
+
+::: informative Why equality needs a definition
+Two conforming implementations can serialize the same DID document
+differently: member order, whitespace, array order, relative or absolute
+DID URLs, and the case of percent-encoded octets all vary. A byte-for-byte or
+order-sensitive comparison would make one implementation's `did.json`
+unresolvable by another for reasons that carry no meaning. The rules below
+compare what the documents say, not how they are written.
+:::
+
+1. The comparison MUST be made on the parsed JSON values, not on their
+   serialization. Object member order and insignificant whitespace MUST NOT
+   affect the result.
+1. Within the values compared, the following MUST be treated as equal:
+    1. a relative DID URL (for example `#<identifier>`) and the absolute DID
+       URL formed by appending it to the document `id`;
+    1. percent-encoded octets that differ only in the case of their
+       hexadecimal digits (for example `%3a` and `%3A`).
+1. The following arrays MUST be compared as sets, so that order and
+   repeated entries do not affect the result: `verificationMethod`,
+   `service`, `alsoKnownAs`, and every verification relationship
+   (`authentication`, `assertionMethod`, `keyAgreement`,
+   `capabilityInvocation`, `capabilityDelegation`). A member whose value
+   would be an empty array MAY be omitted, and an omitted member MUST be
+   treated as equal to an empty array.
+1. The two documents MUST have the same set of top-level members, apart
+   from `@context`, which MUST be ignored (see [DID documents](#did-documents)).
+   A member that the specification requires in a `did:webs` DID document —
+   including `controller` ([DID Controller](#did-controller)),
+   `authentication` and `assertionMethod`
+   ([Verification Relationships](#verification-relationships)), and the
+   `did:keri` entry of `alsoKnownAs` ([Also Known As](#also-known-as)) —
+   MUST be present in the published document as well.
+1. Each verification method MUST be matched by its `id`, and two methods
+   with the same `id` MUST be equal in every member.
+1. Each service MUST be equal in every member, except that a service of
+   `type` `DelegatorOOBI` MUST be compared on its `id` and `type` only.
+   ::: informative Why the delegator endpoint is compared loosely
+   The `serviceEndpoint` of a `DelegatorOOBI` service is a discovery hint
+   whose URL each implementation forms its own way, and its presence proves
+   nothing (see [Delegator Service Endpoint](#delegator-service-endpoint)).
+   Its `id`, the SAID of the delegating seal, is what the
+   [[ref: KERI event stream]] fixes.
+   :::
+1. An `alsoKnownAs` entry equal to the document's own `id` MUST be ignored
+   on both sides.
+1. Anything in the published document that the derived document does not
+   contain is a difference, and so is anything in the derived document that
+   the published document does not contain.
+1. If the documents differ, resolution MUST fail as described in
+   [Read (Resolve)](#read-resolve). If, in addition, the
+   [[ref: KERI event stream]] (as limited by any `versionId`) contains a
+   designation the resolver does not implement (see
+   [Designations](#designations)), the resolver MUST report the failure
+   with the error `unsupportedDesignation` in `didResolutionMetadata`, and
+   SHOULD name the schema [[ref: SAID]] of each such designation. It MUST NOT
+   report that failure as any other error.
+
+### Designations
+
+This section is normative.
+
+A *designation* is an [[ref: ACDC]] in which an AID says something about its
+own DID document. [[ref: Designated aliases]] are one; other designation
+schemas MAY be defined by this specification or by extensions to it.
+
+1. An ACDC in the [[ref: KERI event stream]] is a designation of the AID of a
+   `did:webs` DID when all of the following hold:
+    1. its issuer (`i`) is that AID, and it names no issuee other than that AID;
+    1. its registry (`ri`) was incepted by that AID, and its issuance event
+       in that registry is anchored in the AID's [[ref: KEL]];
+    1. it verifies, and its registry holds no revocation of it anchored in
+       the AID's [[ref: KEL]] (as limited by any `versionId`).
+1. A resolver implements a designation schema when it derives, from every
+   designation of that schema, the DID document content the schema's
+   definition requires. A resolver MUST implement the designated aliases
+   schema.
+1. A resolver MUST NOT derive DID document content from a designation whose
+   schema it does not implement, and MUST NOT accept, from the published
+   document, content that only such a designation could establish.
+1. When the derived and published documents are equal, a designation the
+   resolver does not implement does not cause resolution to fail.
+
+::: informative Why an unknown designation fails resolution rather than being ignored
+A designation can restrict what a DID document says as well as add to it. A
+designation that limits which keys may authenticate, for example, removes keys
+from `authentication` that the key state alone would put there. A resolver
+that ignored such a designation and returned its own derivation would grant
+those keys authority the controller had withdrawn. A resolver that instead
+returned the published document would be trusting content it could not
+verify. So a resolver that meets a difference it cannot explain fails, and
+`unsupportedDesignation` tells the client that a resolver implementing the
+named schema can resolve the DID, where a generic mismatch would suggest that
+the DID's resources were tampered with.
+
+When a controller publishes a document that does not reflect one of its own
+designations, resolvers that implement the schema will find a difference and
+fail; resolvers that do not will find none. Either way, no resolver returns
+content the [[ref: KERI event stream]] does not establish.
+:::
 
 ### Full Example
 
