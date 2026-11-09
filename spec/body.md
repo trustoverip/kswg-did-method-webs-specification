@@ -257,13 +257,13 @@ The four DID Method Operations, create, read, update, and deactivate conceptuall
   - `keri.cesr` stream 
     - includes:
       - KERI events (KEL) for the `did:webs` DID and any delegators
-      - ACDC TEL events, issuance and revocation, for designated alias ACDCs
-      - ACDCs for designated aliases
+      - ACDC TEL events, issuance and revocation, for designated alias and designated services ACDCs
+      - ACDCs for designated aliases and designated services
       - KERI Reply messages (Location Scheme, Endpoint Role Authorization)
 - Update: involves changing values in the DID document. These might include:
   - **key change**: a KERI key rotation event changes the verification methods in a `did:webs` DID document.
   - **alsoKnownAs** or **equivalentId** change: revoking and/or issuing designated aliases ACDCs that update `alsoKnownAs` and `equivalentId`.
-  - **service endpoint** change: [[ref: witness]] rotation, Location Scheme, or Endpoint Role Authorization updates that change the `service` array.
+  - **service endpoint** change: [[ref: witness]] rotation, Location Scheme, or Endpoint Role Authorization updates that change the KERI role endpoints in the `service` array, or revoking and/or issuing designated services ACDCs that change the other entries of the `service` array.
 - Deactivate: rotating the underlying KERI identifier to null, or no next keys.
 :::
 
@@ -406,6 +406,10 @@ are statically hosted, they MUST be overwritten at the published location.
    events (rotation events for witness lists; `rpy` events for Location Scheme
    and Endpoint Role Authorization) to the [[ref: KERI event stream]], according
    to section [Service Endpoint Event Details](#service-endpoint-event-details).
+1. Updates that add, remove, or replace designated services MUST be performed
+   by revoking and/or issuing designated services ACDCs anchored to the
+   [[ref: KERI event stream]], according to section
+   [Designated Services](#designated-services).
 1. After the KERI event stream reflects the updated endpoints, the controller
    MUST regenerate the DID document and republish `did.json` and `keri.cesr`.
 
@@ -435,7 +439,8 @@ This section is normative.
    [[ref: KERI event stream]] of the corresponding AID.
     1. Processing the KERI event stream of the AID, the generation algorithm
        MUST read the AID [[ref: KEL]] and any anchored [[ref: TELs]] to
-       produce the DID document, including any designated alias ACDCs.
+       produce the DID document, including any designated alias and
+       designated services ACDCs.
 2. `did:webs` DID documents MUST be pure JSON. They MAY be processed as
    JSON-LD by prepending an `@context` if consumers of the documents wish.
 3. All hashes, cryptographic keys, and signatures MUST be represented as
@@ -1103,6 +1108,29 @@ This section is normative.
 1. `did:webs` DIDs MUST support service endpoints, including types declared
    in the DID Specification Registries, such as
    [DIDCommMessaging](https://www.w3.org/TR/did-extensions-properties/#didcommmessaging).
+1. The `service` array of a `did:webs` DID document MUST be derived from the
+   [[ref: KERI event stream]] from exactly two sources:
+    1. KERI role endpoints (witness, mailbox, agent and delegator), derived
+       from key state and KERI `rpy` messages as specified in
+       [KERI Service Endpoints as DID document metadata](#keri-service-endpoints-as-did-document-metadata)
+       and [Service Endpoint Event Details](#service-endpoint-event-details);
+       and
+    1. designated services, derived from designated services ACDCs as
+       specified in [Designated Services](#designated-services).
+1. A service of a type that is not a KERI role, such as `DIDCommMessaging`,
+   MUST be expressed as a designated service.
+
+::: informative Why two sources
+KERI's endpoint data cannot carry most DID document services. An Endpoint
+Role Authorization names one of KERI's roles (`agent`, `mailbox`, `witness`,
+...), and a Location Scheme record a URL for a scheme such as `tcp`, `http` or
+`https`. A `DIDCommMessaging` service whose `serviceEndpoint` is a mediator's
+DID, a service with type-specific members such as `accept` or `routingKeys`,
+or a service of a type no KERI role corresponds to, fits neither. Designated
+services carry such entries as the controller wrote them, with the same
+security as designated aliases: the entries are in an ACDC that the AID
+signed and anchored in its own [[ref: KEL]].
+:::
 
 ::: informative Service endpoint mapping and metadata
 For additional details about the mapping between KERI events and the Service
@@ -1121,9 +1149,10 @@ than the KERI service endpoints detailed in
 
 #### KERI Service Endpoints as DID document metadata
 
-1. `did:webs` endpoints MUST be specified using the two data sets KERI uses
-   to define service endpoints: Location Schemes and Endpoint Role
-   Authorizations.
+1. `did:webs` KERI role endpoints MUST be specified using the two data sets
+   KERI uses to define service endpoints: Location Schemes and Endpoint Role
+   Authorizations. Services that are not KERI role endpoints are specified as
+   designated services (see [Designated Services](#designated-services)).
     1. Both MUST be expressed in KERI `rpy` events.
     1. For URL scheme endpoints that an AID has exposed, `did:webs` DIDs
        MUST use Location Schemes URLs.
@@ -1949,6 +1978,163 @@ Resulting agent service entry:
   }
 }
 ```
+
+### Designated Services
+
+This section is normative.
+
+::: informative designated services overview
+A designated service is a DID document service entry that the AID controller
+publishes by issuing an [[ref: ACDC]] to itself, anchored in its own
+[[ref: KEL]] through a [[ref: TEL]], in the same way as
+[[ref: designated aliases]]. It lets a `did:webs` DID advertise services that
+KERI's Location Scheme and Endpoint Role Authorization records cannot express,
+such as `DIDCommMessaging`, without giving the host of `did.json` any say in
+them.
+:::
+
+1. An AID controller MAY designate services by issuing one or more designated
+   services ACDCs.
+    1. A designated services ACDC MUST use the schema whose [[ref: SAID]] is
+       `ELj0Sdf2Boi7BMiIFAEJ9_MSFJU8t-LavLN-gMb8oXM8`.
+    1. Its issuer (`i`) MUST be the AID of the `did:webs` DID.
+    1. Its attribute block (`a`) MUST contain a `services` array with at least
+       one entry. Each entry MUST be a DID document service entry:
+        1. `id` MUST be a relative DID URL consisting of a fragment only, e.g.
+           `#didcomm`.
+        1. `type` MUST be a non-empty string or a non-empty array of non-empty
+           strings.
+        1. `serviceEndpoint` MUST be a string, a map or an array, as the
+           service type defines.
+        1. The entry MAY contain any other members the service type defines.
+1. A resolver MUST accept a designated services ACDC only if all of the
+   following hold, and MUST otherwise derive nothing from it:
+    1. it is signed by the AID, with signatures that satisfy the signing
+       threshold of the key state of the establishment event the signatures
+       reference;
+    1. the registry it names (`ri`) was incepted by the AID, and the registry
+       inception is anchored in the AID's [[ref: KEL]];
+    1. its issuance event is in that registry and is anchored in the AID's
+       [[ref: KEL]];
+    1. no revocation of it is anchored in the AID's [[ref: KEL]]; and
+    1. every entry of its `services` array conforms to the entry rules above.
+1. For every accepted designated services ACDC, each entry of its `services`
+   array MUST be added to the `service` array of the DID document as written,
+   with these exceptions:
+    1. An entry whose `id` is already used by a KERI role endpoint MUST NOT be
+       added.
+    1. Where more than one accepted designation contains an entry with the same
+       `id`, only the first, in the order the designations appear in the
+       [[ref: KERI event stream]], MUST be added.
+1. Designated services are anchored [[ref: KEL]] data. When a DID is resolved
+   with the `versionId` DID parameter, only designations whose issuance is
+   anchored at or before the selected version, and only revocations anchored
+   at or before it, MUST be taken into account (see
+   [Support for `versionId`](#support-for-versionid)).
+1. A controller MUST NOT publish a service in `did.json` that is not derived
+   according to this section or to
+   [Service Endpoint Event Details](#service-endpoint-event-details); the
+   published DID document is checked against the derived one during
+   [Read (Resolve)](#read-resolve).
+
+::: informative designated services and revocation
+A designation cannot be edited. To change or remove a designated service the
+controller revokes the designation that carries it and, if any services remain,
+issues a new designation. Revocation is effective once the revocation event is
+anchored in the [[ref: KEL]], which is also what lets a historical resolution
+show the services that stood at that version. Unlike KERI role endpoints, whose
+`rpy` state is always the latest accepted at resolution time, designated
+services follow `versionId`.
+:::
+
+::: informative designated services rules block
+The schema requires a rules block (`r`) with the following statements, in the
+style of the [[ref: designated aliases]] ACDC: the issuer designates the listed
+services as the only service endpoints of its AID beyond those its KERI
+endpoint role authorizations establish; the attestation asserts where the
+controller may be reached and not that the controller operates the
+infrastructure behind any endpoint; the information is accurate as of the
+designation date time (`a.dt`); and designated services must be used only in a
+manner consistent with the controller's intent.
+:::
+
+#### Designated Services event details
+
+::: informative Designated services example
+This designated services [[ref: ACDC]] (SAIDs shortened for readability)
+designates a `DIDCommMessaging` service reached through a mediator identified
+by a DID, and a `TSPTransport` service:
+
+```json
+{
+  "v": "ACDC10JSON0004f2_",
+  "d": "EKz...",
+  "i": "ENro7uf0ePmiK3jdTo2YCdXLqW7z7xoP6qhhBou6gBLe",
+  "ri": "EBXOxFQrvOxBPb7DiRaTlZNLvX5RbL5cO05MdA35Z0vl",
+  "s": "ELj0Sdf2Boi7BMiIFAEJ9_MSFJU8t-LavLN-gMb8oXM8",
+  "a": {
+    "d": "EGq...",
+    "dt": "2026-11-10T09:00:00.000000+00:00",
+    "services": [
+      {
+        "id": "#didcomm",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": {
+          "uri": "did:webvh:QmMediator:mediator.example.com",
+          "accept": ["didcomm/v2"]
+        }
+      },
+      {
+        "id": "#tsp",
+        "type": "TSPTransport",
+        "serviceEndpoint": "https://tsp.example.com/endpoint"
+      }
+    ]
+  },
+  "r": {
+    ...rules section
+  }
+}
+```
+
+Neither entry can be expressed with KERI's endpoint data: `DIDCommMessaging`
+and `TSPTransport` are not KERI roles, and the DIDComm endpoint is a DID, not
+a URL for a Location Scheme. Together with an agent role endpoint established
+by `rpy` messages, the resulting DID document contains:
+
+```json
+{
+  "service": [
+    {
+      "id": "#BJqHtDoLT_K_XyOgr2ejBOqD9276TYMTg2EEqWKs-V0q/agent",
+      "type": "agent",
+      "serviceEndpoint": {
+        "http": "http://agent.example.com:5636/"
+      }
+    },
+    {
+      "id": "#didcomm",
+      "type": "DIDCommMessaging",
+      "serviceEndpoint": {
+        "uri": "did:webvh:QmMediator:mediator.example.com",
+        "accept": ["didcomm/v2"]
+      }
+    },
+    {
+      "id": "#tsp",
+      "type": "TSPTransport",
+      "serviceEndpoint": "https://tsp.example.com/endpoint"
+    }
+  ]
+}
+```
+
+The designation is anchored in the [[ref: KERI event stream]] exactly like a
+designated aliases ACDC: an interaction event anchors the registry inception
+(`vcp`), another anchors the issuance (`iss`), and the ACDC follows with the
+AID's signatures. See
+[Verifiable data on a TEL](#verifiable-data-on-a-tel).
+:::
 
 ### Designated Aliases
 
@@ -3139,31 +3325,14 @@ events.
 
 ### Adding service endpoint roles in KERI
 
-::: informative service endpoint
-
-* A hypothetical new role that could be submitted to KERI, would be the
-   DIDCommMessaging role. It could be specified
-
-```json
-{
-  "service": [
-      {
-        "id":"#Bgoq68HCmYNUDgOz4Skvlu306o_NY-NrYuKAVhk3Zh9c",
-        "type": "DIDCommMessaging", 
-        "serviceEndpoint": "https://bar.example.com"
-      },
-      {
-        "id":"#BuyRFMideczFZoapylLIyCjSdhtqVb31wZkRKvPfNqkw",
-        "type": "agent", 
-        "serviceEndpoint": {
-          "tcp": "tcp://bar.example.com:5542",
-          "https": "https://bar.example.com" 
-        }
-      }
-  ]
-}
-```
-::: 
+::: informative service endpoint roles
+New KERI roles are needed only for infrastructure that participates in KERI
+itself, such as witnesses, mailboxes and agents. A service that is not part of
+KERI, for example a `DIDCommMessaging` endpoint, does not need a KERI role: it
+is published as a designated service (see
+[Designated Services](#designated-services)), and appears in the DID document
+exactly as the controller designated it.
+:::
 
 ## Annex
 
