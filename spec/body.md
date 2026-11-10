@@ -1140,33 +1140,52 @@ Keeping these keys apart from the key state means that:
 1. An AID controller MAY designate key agreement keys by issuing a key
    agreement designation. A key agreement designation is an [[ref: ACDC]]
    that:
-    1. MUST use the schema with SAID
-       `EJZrf6N4vbhA1hQIujWiIiQmNi455EGS3iXdhxLSwvAi` (see
+    1. MUST use the schema for its ACDC version: SAID
+       `EJZrf6N4vbhA1hQIujWiIiQmNi455EGS3iXdhxLSwvAi` for an ACDC v1
+       credential, or `EIW1ONwnh_dkiDZ3_xmUsBxh7X5u7luVOuCoRdCl3jPZ` for an
+       ACDC v2 credential (see
        [Key agreement designation details](#key-agreement-designation-details)).
     1. MUST name the AID as its issuer (`i`).
-    1. MUST name, in `ri`, a registry whose inception event (`vcp`) names the
-       AID as its issuer (`ii`) and is anchored in the AID's [[ref: KEL]].
-    1. MUST have an issuance event (`iss`) in that registry, anchored in the
-       AID's [[ref: KEL]].
+    1. MUST be in a registry of the same version as the credential, incepted by
+       the AID and anchored in the AID's [[ref: KEL]]:
+        1. ACDC v1: the credential names the registry in `ri`; the registry's
+           inception event (`vcp`) names the AID as its issuer (`ii`); and
+           the credential's issuance event (`iss`) is anchored in the AID's
+           [[ref: KEL]].
+        1. ACDC v2: the credential names the registry in `rd`; the registry's
+           inception event (`rip`) names the AID as its issuer (`i`); and the
+           credential's state is recorded by blindable update events (`bup`),
+           each anchored in the AID's [[ref: KEL]] and published with its
+           blinded state disclosed (public mode). A resolver MUST NOT rely on
+           the non-blindable update event (`upd`).
     1. MUST be signed by the AID with signatures that satisfy the signing
        threshold of the key state established by the event the signature
        group names.
     1. MUST list in `a.keys` one or more CESR-encoded public keys, each of a
        type in the key agreement key types table below.
-1. The key agreement designation, the inception of its registry, its issuance
-   event and any revocation event MUST be included in the `keri.cesr` stream.
+1. The key agreement designation and every event of its registry that the
+   AID's [[ref: KEL]] anchors (inception, issuance, revocation, updates) MUST
+   be included in the `keri.cesr` stream. A resolver MUST fail resolution if
+   the KEL anchors a registry event for a designation that the stream does
+   not contain, because a stream that left out a revocation would otherwise
+   resolve as unrevoked.
 1. An AID controller MUST NOT designate a key of its current key state, or a
    key derived from one, such as the X25519 form of an Ed25519 signing key.
-1. A designation is revoked once a revocation event for it (`rev` or `brv`)
-   is anchored in the AID's [[ref: KEL]]. A revoked designation contributes no
-   keys.
+1. A designation is revoked once a revocation is anchored in the AID's
+   [[ref: KEL]]: for ACDC v1, a `rev` or `brv` event; for ACDC v2, when the
+   latest non-vacuous `bup` for the credential discloses a state other than
+   `issued`. A v2 designation is unrevoked only when that latest non-vacuous
+   update discloses `issued`; any state other than `issued` or `revoked`
+   contributes no keys. A revoked designation contributes no keys.
 1. A resolver MUST treat a key agreement designation that fails any rule
    above as contributing no keys. This includes a designation listing a key
    with a CESR code not in the table, or an elliptic-curve point that is not
    on its curve.
 1. When resolving with a `versionId`, a designation contributes keys only if
    its issuance is anchored at or before that sequence number, and is revoked
-   only if its revocation is anchored at or before it (see
+   only if its revocation is anchored at or before it. For ACDC v2, "latest"
+   means latest among the updates anchored at or before that sequence number,
+   judged by anchor position (see
    [Support for `versionId`](#support-for-versionid)).
 1. The key agreement keys of the DID document are the union, in stream order
    and without duplicates, of the keys of every valid, unrevoked key agreement
@@ -1222,6 +1241,18 @@ the keys are designated for key agreement only and authorize nothing else. The
 schema document is published with the `affinidi-did-webs` implementation
 (`schemas/key-agreement-designation.json`) and is identified by its SAID,
 `EJZrf6N4vbhA1hQIujWiIiQmNi455EGS3iXdhxLSwvAi`.
+
+The ACDC v2 schema, `EIW1ONwnh_dkiDZ3_xmUsBxh7X5u7luVOuCoRdCl3jPZ`, is derived
+from the v1 schema by the same rule as the v2 designated aliases schema:
+`ri` becomes `rd` with the same definition; a required `t` property is added,
+exactly `{"description": "Message type", "type": "string", "const": "acm"}`;
+the properties are ordered `v t d i rd s a r`, and `required` follows that
+order; `version` becomes `2.0.0`. Nothing else changes, so the attribute and
+rules blocks, and their SAIDs, are the same in both.
+
+The example below is ACDC v1. The v2 form differs only in its version string,
+`t`, `rd` in place of `ri`, and its registry events (`rip` and `bup` in place
+of `vcp` and `iss`).
 
 This designation, issued by the AID of the earlier examples in the registry
 used for its designated aliases, designates one X25519 key. The rules block is
