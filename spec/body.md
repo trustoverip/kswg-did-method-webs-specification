@@ -1486,10 +1486,36 @@ schemas MAY be defined by this specification or by extensions to it.
 1. An ACDC in the [[ref: KERI event stream]] is a designation of the AID of a
    `did:webs` DID when all of the following hold:
     1. its issuer (`i`) is that AID, and it names no issuee other than that AID;
-    1. its registry (`ri`) was incepted by that AID, and its issuance event
-       in that registry is anchored in the AID's [[ref: KEL]];
-    1. it verifies, and its registry holds no revocation of it anchored in
-       the AID's [[ref: KEL]] (as limited by any `versionId`).
+    1. its registry was incepted by that AID, and the registry's events are
+       anchored in the AID's [[ref: KEL]], as the registry's version requires
+       (below);
+    1. it verifies, and its registry shows it unrevoked (below), as limited by
+       any `versionId`.
+1. A designation and its registry MUST share a protocol version. A resolver
+   MUST fail resolution on a designation whose registry is of another version.
+    1. An ACDC v1 designation names its registry with `ri`. The registry is a
+       v1 [[ref: TEL]]: a `vcp` inception and the credential's `iss`, each
+       anchored in the AID's [[ref: KEL]]. The designation is unrevoked while
+       its registry holds no `rev` of it anchored in the AID's [[ref: KEL]].
+    1. An ACDC v2 designation names its registry with `rd`. The registry is a
+       `rip` inception and `bup` (blindable update) events, each anchored in
+       the AID's [[ref: KEL]]. Because a designation is public, every `bup`
+       MUST be published with its expanded blinded state attached as a
+       `BlindedStateQuadruples` group, with an empty UUID (the ACDC
+       specification's public mode). Disclosures are matched to updates by
+       their BLID, and every update from the latest back to the latest
+       non-vacuous one MUST be disclosed. The designation is unrevoked when
+       the latest non-vacuous update discloses the state `issued` for it.
+       The only states are `issued` and `revoked`; a resolver MUST fail
+       resolution on any other.
+    1. Under `versionId`, the latest update is the latest among those anchored
+       at or before the limiting KEL event, judged by anchor position in the
+       [[ref: KEL]], not by the update's own sequence number.
+    1. A resolver MUST NOT rely on a v2 `upd` (non-blindable update) event.
+1. Every registry event that the AID's [[ref: KEL]] anchors MUST be present in
+   the [[ref: KERI event stream]], for v1 and v2 registries alike. A resolver
+   that finds an anchor whose registry event is not in the stream MUST fail
+   resolution.
 1. A resolver implements a designation schema when it derives, from every
    designation of that schema, the DID document content the schema's
    definition requires. A resolver MUST implement the designated aliases
@@ -1499,14 +1525,32 @@ schemas MAY be defined by this specification or by extensions to it.
    document, content that only such a designation could establish.
 1. A designation schema whose content restricts what the key state alone
    would put in the DID document (for example, by removing keys from a
-   verification relationship) MUST be defined as *critical*. A resolver that
-   finds, in the [[ref: KERI event stream]] (as limited by any `versionId`), a
-   designation of a critical schema it does not implement MUST fail
-   resolution with the error `unsupportedDesignation`, whether or not the
-   derived and published documents are equal.
+   verification relationship) MUST be defined as *critical*, and every
+   designation of a critical schema MUST carry the attribute `"critical":
+   true` in its attribute block (`a`), so that a resolver that does not know
+   the schema can still recognise it. A resolver that finds, in the
+   [[ref: KERI event stream]] (as limited by any `versionId`), a designation
+   it does not implement whose attribute block has `"critical": true` MUST
+   fail resolution with the error `unsupportedDesignation`, whether or not
+   the derived and published documents are equal.
 1. Otherwise, when the derived and published documents are equal, a
    designation the resolver does not implement does not cause resolution to
    fail.
+
+::: informative Registry versions and the missing-event rule
+The version rules above follow the proposals in
+[#216](https://github.com/trustoverip/kswg-did-method-webs-specification/issues/216)
+(questions 2 and 4), where how `did:webs` handles KERI, ACDC and CESR v2 is
+being settled; they will follow its outcome. Requiring every anchored registry
+event closes a gap that exists in both versions: a verifier checks that what
+is presented is anchored, not that everything anchored was presented, so a
+stream that simply left out a revocation would otherwise resolve the
+designation as issued. A v2 `upd` is excluded because the reference
+implementation (keripy, `keri/acdc/regeventing.py`) accepts only `rip` and
+`bup` in a v2 registry, although the ACDC specification still lists `upd`.
+A blindable registry gives a designation no privacy: its state has to be
+disclosed for anyone to resolve the DID.
+:::
 
 ::: informative Why an unknown designation fails resolution rather than being ignored
 A designation can restrict what a DID document says as well as add to it. A
