@@ -1995,8 +1995,15 @@ them.
 
 1. An AID controller MAY designate services by issuing one or more designated
    services ACDCs.
-    1. A designated services ACDC MUST use the schema whose [[ref: SAID]] is
-       `ELj0Sdf2Boi7BMiIFAEJ9_MSFJU8t-LavLN-gMb8oXM8`.
+    1. A designated services ACDC MUST use the schema for its ACDC version,
+       whose [[ref: SAID]] is `ELj0Sdf2Boi7BMiIFAEJ9_MSFJU8t-LavLN-gMb8oXM8`
+       for ACDC v1 and `EJVZ789syil6R--yix7j8X4g_mHZCDIaSWM15MgkFQgG` for
+       ACDC v2. The v2 schema is derived from the v1 schema by the same rule
+       as the v2 designated aliases schema: `ri` becomes `rd` with the same
+       definition; a required `t` property is added, exactly
+       `{"description": "Message type", "type": "string", "const": "acm"}`;
+       the properties are ordered `v t d i rd s a r`, and `required` follows
+       that order; `version` becomes `2.0.0`. Nothing else changes.
     1. Its issuer (`i`) MUST be the AID of the `did:webs` DID.
     1. Its attribute block (`a`) MUST contain a `services` array with at least
        one entry. Each entry MUST be a DID document service entry:
@@ -2012,11 +2019,21 @@ them.
     1. it is signed by the AID, with signatures that satisfy the signing
        threshold of the key state of the establishment event the signatures
        reference;
-    1. the registry it names (`ri`) was incepted by the AID, and the registry
-       inception is anchored in the AID's [[ref: KEL]];
-    1. its issuance event is in that registry and is anchored in the AID's
-       [[ref: KEL]];
-    1. no revocation of it is anchored in the AID's [[ref: KEL]]; and
+    1. the registry it names is of the same version as the credential, was
+       incepted by the AID, and its inception is anchored in the AID's
+       [[ref: KEL]]: for ACDC v1, the registry is named in `ri` and incepted
+       by a `vcp` event; for ACDC v2, it is named in `rd` and incepted by a
+       `rip` event;
+    1. for ACDC v1, its issuance event (`iss`) is in that registry and is
+       anchored in the AID's [[ref: KEL]], and no revocation of it (`rev`,
+       `brv`) is so anchored; for ACDC v2, its state is recorded by blindable
+       update events (`bup`) anchored in the AID's [[ref: KEL]] and published
+       with their blinded state disclosed (public mode), and the latest
+       non-vacuous update discloses `issued`; a resolver MUST NOT rely on the
+       non-blindable update event (`upd`);
+    1. every event of its registry that the AID's [[ref: KEL]] anchors is in
+       the `keri.cesr` stream (a resolver MUST fail resolution otherwise, since
+       a stream that left out a revocation would resolve as unrevoked); and
     1. every entry of its `services` array conforms to the entry rules above.
 1. For every accepted designated services ACDC, each entry of its `services`
    array MUST be added to the `service` array of the DID document as written,
@@ -2029,7 +2046,9 @@ them.
 1. Designated services are anchored [[ref: KEL]] data. When a DID is resolved
    with the `versionId` DID parameter, only designations whose issuance is
    anchored at or before the selected version, and only revocations anchored
-   at or before it, MUST be taken into account (see
+   at or before it, MUST be taken into account; for ACDC v2, the latest
+   non-vacuous update is the latest anchored at or before the selected
+   version, judged by anchor position (see
    [Support for `versionId`](#support-for-versionid)).
 1. A controller MUST NOT publish a service in `did.json` that is not derived
    according to this section or to
@@ -2063,7 +2082,9 @@ manner consistent with the controller's intent.
 ::: informative Designated services example
 This designated services [[ref: ACDC]] (SAIDs shortened for readability)
 designates a `DIDCommMessaging` service reached through a mediator identified
-by a DID, and a `TSPTransport` service:
+by a DID, and a `TSPTransport` service. It is ACDC v1; the v2 form differs
+only in its version string, `t`, `rd` in place of `ri`, and its registry
+events (`rip` and `bup` in place of `vcp` and `iss`):
 
 ```json
 {
